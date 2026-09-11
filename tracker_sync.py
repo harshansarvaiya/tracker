@@ -3,21 +3,24 @@ SDE-2 Prep Tracker - Google Gemini & Colab Notebook Sync Client ("Switch")
 ========================================================================
 Synchronizes roadmap status, DSA problems, and System Design topics
 directly between your "Switch" notebook and your iPhone tracker web app
-via GitHub (harshansarvaiya/tracker).
+via GitHub (harshansarvaiya/tracker) with zero-knowledge AES-256 GCM encryption.
 
-Zero external dependencies required (uses standard Python library).
+End-to-End Encrypted:
+All roadmap details, LeetCode notes, chat history, and foundational memories
+are encrypted before being committed to GitHub. Public repository files are
+completely unreadable ciphertext without your secret passphrase.
 
 Usage in your "Switch" Notebook:
 --------------------------------
-# 1. Download or import tracker_sync
+# 1. Download tracker_sync
 !curl -s -O https://raw.githubusercontent.com/harshansarvaiya/tracker/main/tracker_sync.py
 from tracker_sync import Tracker
 
-# 2. Connect with your GitHub Personal Access Token (PAT)
-t = Tracker(token="ghp_yourTokenHere")
+# 2. Connect with your GitHub PAT & secret passphrase (defaults to your set passphrase)
+t = Tracker(token="ghp_yourTokenHere", passphrase="SARshanAPPsecurity@$2144")
 
-# 3. Mark problems done, add topics, inspect status
-t.done("974")                          # Marks LC 974 as DONE & syncs immediately to iPhone
+# 3. Mark problems done, add topics, inspect status (all encrypted on-the-fly)
+t.done("974")                          # Marks LC 974 as DONE & syncs encrypted to iPhone
 t.in_progress("LC 75")                 # Marks LC 75 as IN_PROGRESS
 t.add_dsa("LC 200", "Number of Islands", "Graph BFS", notes="Grid traversal with visited set")
 t.status()                             # Prints live progress dashboard
@@ -35,22 +38,33 @@ import urllib.parse
 
 
 class Tracker:
-    def __init__(self, token=None, repo="harshansarvaiya/tracker", branch="main", file_path="data.json"):
+    def __init__(self, token=None, repo="harshansarvaiya/tracker", branch="main", file_path="data.json", passphrase="SARshanAPPsecurity@$2144"):
         """
         Initializes the Tracker sync client.
         :param token: GitHub Personal Access Token (classic with repo scope, or fine-grained with contents:read/write)
         :param repo: GitHub repository path ('owner/repo')
         :param branch: Branch name (default 'main')
         :param file_path: Relative path to data.json in repo (default 'data.json')
+        :param passphrase: Zero-knowledge encryption passphrase for AES-256 GCM
         """
         self.repo = repo.strip()
         self.branch = branch.strip()
         self.file_path = file_path.strip()
 
+        # Passphrase resolution: direct arg -> Colab secrets -> environment variable
+        self.passphrase = passphrase
+        if not self.passphrase:
+            try:
+                from google.colab import userdata
+                self.passphrase = userdata.get("SYNC_PASSPHRASE")
+            except Exception:
+                pass
+        if not self.passphrase:
+            self.passphrase = os.environ.get("SYNC_PASSPHRASE", "SARshanAPPsecurity@$2144")
+
         # Token resolution: direct arg -> Colab secrets -> environment variable
         self.token = token
         if not self.token:
-            # Try Google Colab userdata secret
             try:
                 from google.colab import userdata
                 self.token = userdata.get("GITHUB_TOKEN")
@@ -62,6 +76,79 @@ class Tracker:
         self.current_sha = None
         self.data = None
         self.pull()
+
+    # --------------------------------------------------------------------------
+    # ZERO-KNOWLEDGE AES-GCM 256-BIT ENCRYPTION & DECRYPTION (PBKDF2)
+    # --------------------------------------------------------------------------
+    def _derive_key(self, salt_bytes):
+        """Derives a 256-bit key from the passphrase using PBKDF2-HMAC-SHA256 (100,000 rounds)."""
+        try:
+            from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+            from cryptography.hazmat.primitives import hashes
+        except ImportError:
+            raise ImportError(
+                "End-to-End Encryption requires the 'cryptography' library.\n"
+                "In Google Colab, this is pre-installed. Otherwise run:\n"
+                "  !pip install cryptography"
+            )
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA256(),
+            length=32,
+            salt=salt_bytes,
+            iterations=100000,
+        )
+        return kdf.derive(self.passphrase.encode("utf-8"))
+
+    def _encrypt_envelope(self, payload):
+        """Encrypts dictionary payload into a version 2 AES-GCM envelope."""
+        if not self.passphrase:
+            return payload
+        try:
+            from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+        except ImportError:
+            raise ImportError("The 'cryptography' library is required to encrypt tracker data.")
+
+        salt = os.urandom(16)
+        iv = os.urandom(12)
+        key = self._derive_key(salt)
+        aesgcm = AESGCM(key)
+
+        plaintext = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        ciphertext = aesgcm.encrypt(iv, plaintext, None)
+
+        envelope = {
+            "version": 2,
+            "encrypted": True,
+            "lastUpdated": datetime.now(timezone.utc).isoformat(),
+            "updatedBy": payload.get("updatedBy", "Switch Notebook"),
+            "salt": salt.hex(),
+            "iv": iv.hex(),
+            "ciphertext": base64.b64encode(ciphertext).decode("utf-8")
+        }
+        return envelope
+
+    def _decrypt_envelope(self, envelope):
+        """Decrypts a version 2 AES-GCM envelope back into dictionary payload."""
+        if not isinstance(envelope, dict) or not envelope.get("encrypted"):
+            return envelope
+        if not self.passphrase:
+            raise ValueError(
+                "Data is encrypted with AES-256 GCM. Please provide your passphrase:\n"
+                "  t = Tracker(token='...', passphrase='SARshanAPPsecurity@$2144')"
+            )
+        try:
+            from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+        except ImportError:
+            raise ImportError("The 'cryptography' library is required to decrypt tracker data.")
+
+        salt = bytes.fromhex(envelope["salt"])
+        iv = bytes.fromhex(envelope["iv"])
+        ciphertext = base64.b64decode(envelope["ciphertext"])
+        key = self._derive_key(salt)
+        aesgcm = AESGCM(key)
+
+        plaintext = aesgcm.decrypt(iv, ciphertext, None)
+        return json.loads(plaintext.decode("utf-8"))
 
     # --------------------------------------------------------------------------
     # GITHUB API CLIENT
@@ -81,7 +168,7 @@ class Tracker:
         return headers
 
     def pull(self):
-        """Fetches the latest data.json from GitHub."""
+        """Fetches the latest data.json from GitHub and decrypts if encrypted."""
         url = f"https://api.github.com/repos/{self.repo}/contents/{self.file_path}?ref={self.branch}"
         req = urllib.request.Request(url, headers=self._headers(write=False))
         try:
@@ -89,7 +176,11 @@ class Tracker:
                 result = json.loads(resp.read().decode("utf-8"))
                 self.current_sha = result.get("sha")
                 raw_content = base64.b64decode(result.get("content", "")).decode("utf-8")
-                self.data = json.loads(raw_content)
+                parsed = json.loads(raw_content)
+                if isinstance(parsed, dict) and parsed.get("encrypted"):
+                    self.data = self._decrypt_envelope(parsed)
+                else:
+                    self.data = parsed
                 return self.data
         except urllib.error.HTTPError as e:
             if e.code == 404:
@@ -100,7 +191,7 @@ class Tracker:
             raise RuntimeError(f"Failed to fetch data from GitHub: {str(e)}")
 
     def _push(self, commit_message):
-        """Pushes current in-memory self.data back to GitHub."""
+        """Pushes current in-memory self.data back to GitHub with zero-knowledge AES-256 encryption."""
         if not self.token:
             raise ValueError("Cannot push without a GitHub Personal Access Token (PAT).")
 
@@ -116,7 +207,12 @@ class Tracker:
         })
         self.data["recentCommands"] = self.data["recentCommands"][-20:]
 
-        content_bytes = json.dumps(self.data, indent=2).encode("utf-8")
+        if self.passphrase:
+            payload_to_push = self._encrypt_envelope(self.data)
+        else:
+            payload_to_push = self.data
+
+        content_bytes = json.dumps(payload_to_push, indent=2).encode("utf-8")
         encoded_content = base64.b64encode(content_bytes).decode("utf-8")
 
         url = f"https://api.github.com/repos/{self.repo}/contents/{self.file_path}"
@@ -138,7 +234,7 @@ class Tracker:
             with urllib.request.urlopen(req) as resp:
                 res = json.loads(resp.read().decode("utf-8"))
                 self.current_sha = res.get("content", {}).get("sha")
-                print(f"  Synced to GitHub & iPhone: {commit_message}")
+                print(f"  🔒 Encrypted & Synced to GitHub & iPhone: {commit_message}")
                 return True
         except urllib.error.HTTPError as e:
             body = e.read().decode("utf-8", errors="ignore")
@@ -146,6 +242,11 @@ class Tracker:
             if e.code == 409:
                 print("  [Conflict detected: auto-refreshing latest state and retrying...]")
                 self.pull()
+                if self.passphrase:
+                    retry_payload = self._encrypt_envelope(self.data)
+                else:
+                    retry_payload = self.data
+                payload["content"] = base64.b64encode(json.dumps(retry_payload, indent=2).encode("utf-8")).decode("utf-8")
                 payload["sha"] = self.current_sha
                 req2 = urllib.request.Request(
                     url,
@@ -156,7 +257,7 @@ class Tracker:
                 with urllib.request.urlopen(req2) as resp2:
                     res2 = json.loads(resp2.read().decode("utf-8"))
                     self.current_sha = res2.get("content", {}).get("sha")
-                    print(f"  Synced to GitHub & iPhone: {commit_message}")
+                    print(f"  🔒 Encrypted & Synced to GitHub & iPhone: {commit_message}")
                     return True
             raise RuntimeError(f"GitHub Push failed ({e.code}): {body}")
 
