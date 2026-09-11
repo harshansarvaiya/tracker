@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>SDE-2 Prep Tracker</title>
+  
+  <!-- iOS PWA Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SDE-2 Prep">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#090d16">
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfeff',
+              500: '#06b6d4',
+              600: '#0891b2',
+            },
+            surface: {
+              base: '#070a13',
+              card: '#0f172a',
+              cardHover: '#1e293b',
+              border: '#1e293b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #070a13;
+      color: #f1f5f9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: calc(env(safe-area-inset-bottom) + 80px);
+    }
+    .bottom-bar {
+      padding-bottom: max(16px, env(safe-area-inset-bottom));
+    }
+    /* Custom scrollbars */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+  </style>
+</head>
+<body class="min-h-screen">
+
+  <!-- TOP APP HEADER -->
+  <header class="sticky top-0 z-40 bg-[#070a13]/90 backdrop-blur-md border-b border-slate-800/80 px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+        <span class="text-white font-black text-base">&lt;/&gt;</span>
+      </div>
+      <div>
+        <h1 class="text-base font-bold text-white tracking-tight leading-none">SDE-2 Prep Tracker</h1>
+        <p class="text-[11px] text-slate-400 mt-1">Harshan &bull; Tier-A Switch</p>
+      </div>
+    </div>
+    <div class="flex items-center space-x-2">
+      <div class="flex items-center bg-slate-800/90 border border-slate-700/60 rounded-full px-2.5 py-1 text-xs text-amber-400 font-semibold shadow-inner">
+        <span class="mr-1">🔥</span>
+        <span id="streakCount">12</span> <span class="text-slate-400 text-[10px] ml-1 font-normal">days</span>
+      </div>
+      <button onclick="requestNotificationPermission()" title="Enable Alerts" class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700/60 flex items-center justify-center text-slate-300 hover:text-cyan-400 transition">
+        🔔
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN VIEW CONTAINER -->
+  <main class="max-w-2xl mx-auto px-4 py-4">
+
+    <!-- ================= TAB 1: DAILY FOCUS ================= -->
+    <section id="tabDaily" class="space-y-4 tab-content">
+      
+      <!-- TODAY'S ROUTINE BANNER -->
+      <div class="bg-gradient-to-br from-slate-900 to-slate-800 border border-cyan-500/30 rounded-2xl p-4 shadow-xl relative overflow-hidden">
+        <div class="absolute -right-8 -top-8 w-28 h-28 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="flex justify-between items-start">
+          <div>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-cyan-950 text-cyan-400 border border-cyan-800/50">
+              Today's Session: 9:00 AM – 10:00 AM
+            </span>
+            <h2 class="text-lg font-bold text-white mt-1.5" id="todayDateStr">Friday, Sep 11</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Post-gym &bull; 60 mins non-negotiable focus</p>
+          </div>
+          <div class="text-right">
+            <span class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold block">Total Progress</span>
+            <span class="text-lg font-black text-cyan-400" id="globalProgressPercent">0%</span>
+          </div>
+        </div>
+
+        <!-- PROGRESS BAR -->
+        <div class="w-full bg-slate-800 rounded-full h-2 mt-3 overflow-hidden border border-slate-700/50">
+          <div id="globalProgressBar" class="bg-gradient-to-r from-cyan-500 to-emerald-400 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+        <div class="flex justify-between text-[11px] text-slate-400 mt-2 font-medium">
+          <span id="dsaProgressStat">DSA: 0 / 0</span>
+          <span id="sdProgressStat">SD: 0 / 0</span>
+        </div>
+      </div>
+
+      <!-- TODAY'S DSA CARD -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-md">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-cyan-400">Today's DSA Target</h3>
+          </div>
+          <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-950 text-amber-300 border border-amber-800/60">Medium</span>
+        </div>
+
+        <div>
+          <div class="flex items-baseline space-x-2">
+            <span class="text-sm font-bold text-slate-400">LC 974</span>
+            <h4 class="text-base font-bold text-white leading-snug">Subarray Sums Divisible by K</h4>
+          </div>
+          <p class="text-xs text-slate-400 mt-1">Pattern: <span class="text-cyan-300 font-medium">Prefix Sum + Modular Arithmetic</span></p>
+        </div>
+
+        <!-- INVARIANT REMINDER BOX -->
+        <div class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-2.5 text-xs text-slate-300 space-y-1">
+          <div class="font-semibold text-amber-400 text-[11px] flex items-center">
+            <span class="mr-1.5">⚠️</span> Senior Pitfall to Guard:
+          </div>
+          <p class="text-[11px] text-slate-400 leading-relaxed">
+            Java negative modulo: <code class="text-cyan-300 bg-slate-900 px-1 py-0.5 rounded">((sum % k) + k) % k</code>. Zero-allocation primitive buffer <code class="text-emerald-300 bg-slate-900 px-1 py-0.5 rounded">int[k]</code> instead of HashMap.
+          </p>
+        </div>
+
+        <!-- STATUS TOGGLE & BUTTONS -->
+        <div class="flex items-center justify-between pt-1 gap-2">
+          <div class="flex items-center space-x-1.5">
+            <button onclick="setFocusProblemStatus('974', 'TODO')" id="btnDailyTodo" class="px-3 py-1.5 text-xs rounded-lg font-medium transition border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700">Todo</button>
+            <button onclick="setFocusProblemStatus('974', 'IN_PROGRESS')" id="btnDailyProgress" class="px-3 py-1.5 text-xs rounded-lg font-medium transition border border-blue-600 bg-blue-950/80 text-blue-300">In Progress</button>
+            <button onclick="setFocusProblemStatus('974', 'DONE')" id="btnDailyDone" class="px-3 py-1.5 text-xs rounded-lg font-medium transition border border-slate-700 bg-slate-800 text-slate-300 hover:bg-emerald-950 hover:text-emerald-300">Done ✓</button>
+          </div>
+          <a href="https://leetcode.com/problems/subarray-sums-divisible-by-k/" target="_blank" rel="noreferrer" class="inline-flex items-center text-xs font-semibold text-cyan-400 bg-cyan-950/80 border border-cyan-800/60 px-3 py-1.5 rounded-lg hover:bg-cyan-900 transition">
+            LeetCode ↗
+          </a>
+        </div>
+      </div>
+
+      <!-- TODAY'S SD CARD -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-md">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-purple-400">Weekend SD Focus (Saturday 10 AM)</h3>
+          </div>
+          <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-indigo-950 text-indigo-300 border border-indigo-800/60">LLD</span>
+        </div>
+
+        <div>
+          <h4 class="text-base font-bold text-white leading-snug">Thread-Safe In-Memory LRU Cache with TTL</h4>
+          <p class="text-xs text-slate-400 mt-1">Track: <span class="text-purple-300 font-medium">Machine Coding & Concurrency Primitives</span></p>
+        </div>
+
+        <div class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-2.5 text-xs text-slate-300 space-y-1">
+          <div class="font-semibold text-purple-400 text-[11px] flex items-center">
+            <span class="mr-1.5">💡</span> Senior Evaluation Check:
+          </div>
+          <p class="text-[11px] text-slate-400 leading-relaxed">
+            Custom Doubly Linked List + HashMap. Compare <code class="text-cyan-300 bg-slate-900 px-1 py-0.5 rounded">ReentrantReadWriteLock</code> vs fine-grained bucket lock-striping under 100 concurrent threads.
+          </p>
+        </div>
+
+        <div class="flex items-center justify-between pt-1 gap-2">
+          <div class="flex items-center space-x-1.5">
+            <button onclick="setFocusSDStatus('lru-cache', 'TODO')" id="btnSdTodo" class="px-3 py-1.5 text-xs rounded-lg font-medium transition border border-slate-700 bg-slate-800 text-slate-300">Todo</button>
+            <button onclick="setFocusSDStatus('lru-cache', 'IN_PROGRESS')" id="btnSdProgress" class="px-3 py-1.5 text-xs rounded-lg font-medium transition border border-purple-600 bg-purple-950/80 text-purple-300">In Progress</button>
+            <button onclick="setFocusSDStatus('lru-cache', 'DONE')" id="btnSdDone" class="px-3 py-1.5 text-xs rounded-lg font-medium transition border border-slate-700 bg-slate-800 text-slate-300">Done ✓</button>
+          </div>
+          <a href="https://github.com/harshansarvaiya/SystemDesign" target="_blank" rel="noreferrer" class="inline-flex items-center text-xs font-semibold text-purple-400 bg-purple-950/80 border border-purple-800/60 px-3 py-1.5 rounded-lg hover:bg-purple-900 transition">
+            GitHub Repo ↗
+          </a>
+        </div>
+      </div>
+
+      <!-- QUICK LINKS -->
+      <div class="grid grid-cols-2 gap-3 pt-2">
+        <a href="https://github.com/harshansarvaiya/DSA" target="_blank" rel="noreferrer" class="p-3 bg-slate-900/90 border border-slate-800 rounded-xl flex items-center space-x-2.5 hover:border-slate-700 transition">
+          <span class="text-xl">📁</span>
+          <div class="overflow-hidden">
+            <span class="text-xs font-semibold text-white block truncate">DSA Repository</span>
+            <span class="text-[10px] text-slate-400 block truncate">github.com/harshansarvaiya/DSA</span>
+          </div>
+        </a>
+        <a href="https://leetcode.com/u/HarshanSarvaiya/" target="_blank" rel="noreferrer" class="p-3 bg-slate-900/90 border border-slate-800 rounded-xl flex items-center space-x-2.5 hover:border-slate-700 transition">
+          <span class="text-xl">📊</span>
+          <div class="overflow-hidden">
+            <span class="text-xs font-semibold text-white block truncate">LeetCode Profile</span>
+            <span class="text-[10px] text-slate-400 block truncate">120 Solved &bull; HarshanSarvaiya</span>
+          </div>
+        </a>
+      </div>
+
+    </section>
+
+
+    <!-- ================= TAB 2: DSA PROBLEMS TRACKER ================= -->
+    <section id="tabDSA" class="space-y-4 tab-content hidden">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-bold text-white">DSA Curated Problems</h2>
+          <p class="text-xs text-slate-400">Phase 1 (Arrays, Pointers, Prefix Sum, Intervals)</p>
+        </div>
+        <button onclick="toggleAddModal('dsa')" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs rounded-xl shadow-lg shadow-cyan-600/20 transition flex items-center">
+          <span class="mr-1 text-sm">+</span> Add Problem
+        </button>
+      </div>
+
+      <!-- FILTER PILLS -->
+      <div class="flex items-center space-x-2 overflow-x-auto pb-1 text-xs">
+        <button onclick="filterDSAList('ALL')" class="dsa-filter px-3 py-1 rounded-full font-medium bg-cyan-950 text-cyan-300 border border-cyan-800" data-filter="ALL">All</button>
+        <button onclick="filterDSAList('TODO')" class="dsa-filter px-3 py-1 rounded-full font-medium bg-slate-800 text-slate-300 border border-slate-700" data-filter="TODO">Todo</button>
+        <button onclick="filterDSAList('IN_PROGRESS')" class="dsa-filter px-3 py-1 rounded-full font-medium bg-slate-800 text-slate-300 border border-slate-700" data-filter="IN_PROGRESS">In Progress</button>
+        <button onclick="filterDSAList('DONE')" class="dsa-filter px-3 py-1 rounded-full font-medium bg-slate-800 text-slate-300 border border-slate-700" data-filter="DONE">Done</button>
+        <button onclick="filterDSAList('Prefix Sum')" class="dsa-filter px-3 py-1 rounded-full font-medium bg-slate-800 text-slate-300 border border-slate-700 whitespace-nowrap" data-filter="Prefix Sum">Prefix Sum</button>
+        <button onclick="filterDSAList('Two Pointers')" class="dsa-filter px-3 py-1 rounded-full font-medium bg-slate-800 text-slate-300 border border-slate-700 whitespace-nowrap" data-filter="Two Pointers">Two Pointers</button>
+      </div>
+
+      <!-- SEARCH INPUT -->
+      <div class="relative">
+        <input type="text" id="dsaSearchInput" oninput="renderDSAList()" placeholder="Search problems, patterns, LC numbers..." class="w-full bg-slate-900/90 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition">
+      </div>
+
+      <!-- PROBLEM LIST CONTAINER -->
+      <div id="dsaProblemList" class="space-y-2.5">
+        <!-- Rendered via JS -->
+      </div>
+    </section>
+
+
+    <!-- ================= TAB 3: SYSTEM DESIGN TRACKER ================= -->
+    <section id="tabSD" class="space-y-4 tab-content hidden">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-bold text-white">System Design Roadmap</h2>
+          <p class="text-xs text-slate-400">LLD Machine Coding & HLD Distributed Primitives</p>
+        </div>
+        <button onclick="toggleAddModal('sd')" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs rounded-xl shadow-lg shadow-purple-600/20 transition flex items-center">
+          <span class="mr-1 text-sm">+</span> Add Topic
+        </button>
+      </div>
+
+      <!-- FILTER PILLS -->
+      <div class="flex items-center space-x-2 overflow-x-auto pb-1 text-xs">
+        <button onclick="filterSDList('ALL')" class="sd-filter px-3 py-1 rounded-full font-medium bg-purple-950 text-purple-300 border border-purple-800" data-filter="ALL">All</button>
+        <button onclick="filterSDList('LLD')" class="sd-filter px-3 py-1 rounded-full font-medium bg-slate-800 text-slate-300 border border-slate-700" data-filter="LLD">LLD Only</button>
+        <button onclick="filterSDList('HLD')" class="sd-filter px-3 py-1 rounded-full font-medium bg-slate-800 text-slate-300 border border-slate-700" data-filter="HLD">HLD Only</button>
+        <button onclick="filterSDList('TODO')" class="sd-filter px-3 py-1 rounded-full font-medium bg-slate-800 text-slate-300 border border-slate-700" data-filter="TODO">Todo</button>
+        <button onclick="filterSDList('DONE')" class="sd-filter px-3 py-1 rounded-full font-medium bg-slate-800 text-slate-300 border border-slate-700" data-filter="DONE">Done</button>
+      </div>
+
+      <!-- SEARCH INPUT -->
+      <div class="relative">
+        <input type="text" id="sdSearchInput" oninput="renderSDList()" placeholder="Search system design topics, patterns..." class="w-full bg-slate-900/90 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition">
+      </div>
+
+      <!-- SD TOPIC LIST CONTAINER -->
+      <div id="sdTopicList" class="space-y-2.5">
+        <!-- Rendered via JS -->
+      </div>
+    </section>
+
+
+    <!-- ================= TAB 4: SETTINGS / BACKUP ================= -->
+    <section id="tabSettings" class="space-y-4 tab-content hidden">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
+        <h2 class="text-base font-bold text-white">App & Schedule Settings</h2>
+        
+        <div class="space-y-2 text-xs text-slate-300">
+          <div class="flex justify-between items-center py-2 border-b border-slate-800">
+            <div>
+              <p class="font-semibold text-white">Daily Problem Schedule</p>
+              <p class="text-[11px] text-slate-400">Monday–Friday at 8:45 AM</p>
+            </div>
+            <span class="text-emerald-400 font-semibold">Active</span>
+          </div>
+
+          <div class="flex justify-between items-center py-2 border-b border-slate-800">
+            <div>
+              <p class="font-semibold text-white">Daily Check-in Schedule</p>
+              <p class="text-[11px] text-slate-400">Every Evening at 9:30 PM</p>
+            </div>
+            <span class="text-emerald-400 font-semibold">Active</span>
+          </div>
+
+          <div class="flex justify-between items-center py-2 border-b border-slate-800">
+            <div>
+              <p class="font-semibold text-white">Weekend Design Deep Dive</p>
+              <p class="text-[11px] text-slate-400">Saturday & Sunday at 10:00 AM</p>
+            </div>
+            <span class="text-emerald-400 font-semibold">Active</span>
+          </div>
+        </div>
+
+        <div class="pt-2">
+          <button onclick="testNotification()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-semibold text-cyan-300 transition">
+            🔔 Test Web Notification
+          </button>
+        </div>
+      </div>
+
+      <!-- BACKUP / EXPORT SECTION -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
+        <h3 class="text-sm font-bold text-white">Data Management</h3>
+        <p class="text-xs text-slate-400">Your progress is automatically saved to your browser's local storage. You can also export or import your data as a JSON file.</p>
+        
+        <div class="grid grid-cols-2 gap-3 pt-1">
+          <button onclick="exportData()" class="py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-semibold text-white transition">
+            ⬇️ Export JSON
+          </button>
+          <button onclick="document.getElementById('importFileInput').click()" class="py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-semibold text-white transition">
+            ⬆️ Import JSON
+          </button>
+          <input type="file" id="importFileInput" onchange="importData(event)" class="hidden" accept=".json">
+        </div>
+
+        <div class="pt-2">
+          <button onclick="resetDefaults()" class="w-full py-2 text-xs text-rose-400 hover:text-rose-300 transition">
+            Reset to Default Roadmap
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= BOTTOM NAVIGATION BAR ================= -->
+  <nav class="fixed bottom-0 left-0 right-0 z-50 bg-[#070a13]/95 backdrop-blur-xl border-t border-slate-800 bottom-bar">
+    <div class="max-w-2xl mx-auto flex items-center justify-around text-xs py-2 px-1">
+      <button onclick="switchTab('tabDaily')" id="navBtnDaily" class="nav-btn flex flex-col items-center py-1 px-3 text-cyan-400 font-semibold transition">
+        <span class="text-lg">🎯</span>
+        <span class="text-[10px] mt-0.5">Today</span>
+      </button>
+
+      <button onclick="switchTab('tabDSA')" id="navBtnDSA" class="nav-btn flex flex-col items-center py-1 px-3 text-slate-400 hover:text-slate-200 transition">
+        <span class="text-lg">🧩</span>
+        <span class="text-[10px] mt-0.5">DSA Tracker</span>
+      </button>
+
+      <button onclick="switchTab('tabSD')" id="navBtnSD" class="nav-btn flex flex-col items-center py-1 px-3 text-slate-400 hover:text-slate-200 transition">
+        <span class="text-lg">🏗️</span>
+        <span class="text-[10px] mt-0.5">System Design</span>
+      </button>
+
+      <button onclick="switchTab('tabSettings')" id="navBtnSettings" class="nav-btn flex flex-col items-center py-1 px-3 text-slate-400 hover:text-slate-200 transition">
+        <span class="text-lg">⚙️</span>
+        <span class="text-[10px] mt-0.5">Settings</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ================= ADD MODAL ================= -->
+  <div id="addModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center">
+        <h3 id="modalTitle" class="text-base font-bold text-white">Add New Problem</h3>
+        <button onclick="toggleAddModal(null)" class="text-slate-400 hover:text-white text-lg">&times;</button>
+      </div>
+
+      <form id="addForm" onsubmit="handleFormSubmit(event)" class="space-y-3 text-xs">
+        <input type="hidden" id="formType" value="dsa">
+
+        <div>
+          <label class="block text-slate-400 mb-1">Title / Name *</label>
+          <input type="text" id="formTitle" required placeholder="e.g. Merge Intervals" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-slate-400 mb-1">Pattern / Track *</label>
+            <input type="text" id="formPattern" required placeholder="e.g. Overlapping Intervals" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">LC # / Topic ID</label>
+            <input type="text" id="formCode" placeholder="e.g. LC 56 or HLD-1" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-slate-400 mb-1">Target Date</label>
+            <input type="date" id="formDate" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">Status</label>
+            <select id="formStatus" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+              <option value="TODO">Todo</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="DONE">Done</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-slate-400 mb-1">External Link (LeetCode / GitHub)</label>
+          <input type="url" id="formLink" placeholder="https://..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+        </div>
+
+        <div>
+          <label class="block text-slate-400 mb-1">Key Senior Takeaways / Notes</label>
+          <textarea id="formNotes" rows="2" placeholder="Key invariant, time complexity, JVM nuances..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500"></textarea>
+        </div>
+
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="toggleAddModal(null)" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl hover:bg-slate-700 transition">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-cyan-600 text-white font-semibold rounded-xl hover:bg-cyan-500 transition">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- ================= JAVASCRIPT APP LOGIC ================= -->
+  <script>
+    // Register PWA Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW failed', err));
+      });
+    }
+
+    // DEFAULT DATASETS GROUNDED IN USER ROADMAP
+    const DEFAULT_DSA = [
+      { id: '11', code: 'LC 11', title: 'Container With Most Water', pattern: 'Two Pointers', status: 'DONE', date: '2026-09-01', link: 'https://leetcode.com/problems/container-with-most-water/', notes: 'Area bounded by min height. Advancing shorter line maintains optimality.' },
+      { id: '15', code: 'LC 15', title: '3Sum', pattern: 'Two Pointers', status: 'DONE', date: '2026-09-01', link: 'https://leetcode.com/problems/3sum/', notes: 'Sort + converging pointers. In-place duplicate skip after finding pair.' },
+      { id: '42', code: 'LC 42', title: 'Trapping Rain Water', pattern: 'Two Pointers', status: 'DONE', date: '2026-09-03', link: 'https://leetcode.com/problems/trapping-rain-water/', notes: 'O(1) space via leftMax and rightMax scalar tracking.' },
+      { id: '80', code: 'LC 80', title: 'Remove Duplicates from Sorted Array II', pattern: 'Two Pointers', status: 'DONE', date: '2026-09-01', link: 'https://leetcode.com/problems/remove-duplicates-from-sorted-array-ii/', notes: 'Fast/slow reader-writer boundary allowing at most k duplicates.' },
+      { id: '75', code: 'LC 75', title: 'Sort Colors', pattern: 'Two Pointers', status: 'TODO', date: '2026-09-12', link: 'https://leetcode.com/problems/sort-colors/', notes: 'Dutch National Flag 3-way partitioning. Low, mid, high pointers.' },
+      { id: '560', code: 'LC 560', title: 'Subarray Sum Equals K', pattern: 'Prefix Sum', status: 'DONE', date: '2026-08-31', link: 'https://leetcode.com/problems/subarray-sum-equals-k/', notes: 'Frequency map. S_{i-1} = S_j - k. Query before insert order.' },
+      { id: '525', code: 'LC 525', title: 'Contiguous Array', pattern: 'Prefix Sum', status: 'DONE', date: '2026-09-10', link: 'https://leetcode.com/problems/contiguous-array/', notes: 'Transform 0->-1, 1->1. Earliest index map with map.putIfAbsent.' },
+      { id: '974', code: 'LC 974', title: 'Subarrays Divisible by K', pattern: 'Prefix Sum', status: 'IN_PROGRESS', date: '2026-09-11', link: 'https://leetcode.com/problems/subarray-sums-divisible-by-k/', notes: 'Java negative modulo: ((sum%k)+k)%k. Use int[k] primitive buffer.' },
+      { id: '523', code: 'LC 523', title: 'Continuous Subarray Sum', pattern: 'Prefix Sum', status: 'TODO', date: '2026-09-13', link: 'https://leetcode.com/problems/continuous-subarray-sum/', notes: 'Modular index tracking with minimum length >= 2 requirement.' },
+      { id: '1248', code: 'LC 1248', title: 'Count Number of Nice Subarrays', pattern: 'Prefix Sum', status: 'TODO', date: '2026-09-14', link: 'https://leetcode.com/problems/count-number-of-nice-subarrays/', notes: 'Parity transformation mapping odd->1, even->0 to reduce to LC 560.' },
+      { id: '1371', code: 'LC 1371', title: 'Find Longest Substring Even Vowels', pattern: 'Prefix Sum', status: 'TODO', date: '2026-09-15', link: 'https://leetcode.com/problems/find-the-longest-substring-containing-vowels-in-even-counts/', notes: '5-bit parity mask with int[32] earliest index buffer.' },
+      { id: '438', code: 'LC 438', title: 'Find All Anagrams in a String', pattern: 'Sliding Window', status: 'DONE', date: '2026-09-06', link: 'https://leetcode.com/problems/find-all-anagrams-in-a-string/', notes: 'Fixed window of size p.length() with frequency match.' },
+      { id: '3', code: 'LC 3', title: 'Longest Substring Without Repeating Characters', pattern: 'Sliding Window', status: 'TODO', date: '2026-09-16', link: 'https://leetcode.com/problems/longest-substring-without-repeating-characters/', notes: 'Dynamic sliding window with int[128] last seen index table.' },
+      { id: '76', code: 'LC 76', title: 'Minimum Window Substring', pattern: 'Sliding Window', status: 'TODO', date: '2026-09-17', link: 'https://leetcode.com/problems/minimum-window-substring/', notes: 'Expand right to fulfill condition, contract left to minimize length.' },
+      { id: '56', code: 'LC 56', title: 'Merge Intervals', pattern: 'Overlapping Intervals', status: 'TODO', date: '2026-09-18', link: 'https://leetcode.com/problems/merge-intervals/', notes: 'Sort by start time. Compare current start with previous end.' },
+      { id: '435', code: 'LC 435', title: 'Non-overlapping Intervals', pattern: 'Overlapping Intervals', status: 'TODO', date: '2026-09-19', link: 'https://leetcode.com/problems/non-overlapping-intervals/', notes: 'Greedy sort by end time. Pick earliest finishing interval.' },
+      { id: '739', code: 'LC 739', title: 'Daily Temperatures', pattern: 'Monotonic Stack', status: 'TODO', date: '2026-09-21', link: 'https://leetcode.com/problems/daily-temperatures/', notes: 'Monotonically decreasing stack storing indices. Next greater element.' },
+      { id: '239', code: 'LC 239', title: 'Sliding Window Maximum', pattern: 'Monotonic Stack', status: 'TODO', date: '2026-09-22', link: 'https://leetcode.com/problems/sliding-window-maximum/', notes: 'Monotonic deque maintaining descending order of element values.' }
+    ];
+
+    const DEFAULT_SD = [
+      { id: 'lru-cache', code: 'LLD-01', title: 'Thread-Safe In-Memory LRU Cache with TTL', track: 'LLD', status: 'IN_PROGRESS', date: '2026-09-12', link: 'https://github.com/harshansarvaiya/SystemDesign', notes: 'Doubly Linked List + HashMap. ReentrantReadWriteLock vs lock-striping.' },
+      { id: 'rate-limiter-lld', code: 'LLD-02', title: 'In-Memory Rate Limiter (Token Bucket & Sliding Window)', track: 'LLD', status: 'TODO', date: '2026-09-19', link: 'https://github.com/harshansarvaiya/SystemDesign', notes: 'AtomicInteger, AtomicReference, lock-free token refill under high concurrency.' },
+      { id: 'parking-lot', code: 'LLD-03', title: 'Parking Lot / Elevator Dispatcher', track: 'LLD', status: 'TODO', date: '2026-09-26', link: 'https://github.com/harshansarvaiya/SystemDesign', notes: 'State pattern, spot allocation strategy, concurrent check-in handling.' },
+      { id: 'splitwise', code: 'LLD-04', title: 'Splitwise / Expense Sharing Service', track: 'LLD', status: 'TODO', date: '2026-10-03', link: 'https://github.com/harshansarvaiya/SystemDesign', notes: 'Strategy pattern for Equal/Exact/Percent splits. Balance sheet graph simplification.' },
+      { id: 'storage-engines', code: 'HLD-01', title: 'Storage Engines & Partitioning Primitives', track: 'HLD', status: 'TODO', date: '2026-09-13', link: 'https://github.com/harshansarvaiya/SystemDesign', notes: 'B+ Tree (Postgres) vs LSM (Cassandra). Sharding, Consistent Hashing, Replication lag.' },
+      { id: 'caching-topologies', code: 'HLD-02', title: 'Redis Caching Topologies & Stampede Mitigation', track: 'HLD', status: 'TODO', date: '2026-09-20', link: 'https://github.com/harshansarvaiya/SystemDesign', notes: 'Cache-Aside, Write-Through. Mitigating Avalanche (jitter) and Penetration (Bloom).' },
+      { id: 'kafka-streaming', code: 'HLD-03', title: 'Event-Driven Architecture & Kafka Deep Dive', track: 'HLD', status: 'TODO', date: '2026-09-27', link: 'https://github.com/harshansarvaiya/SystemDesign', notes: 'Partitions, consumer group rebalance, manual offset commits, poison pill DLQ.' },
+      { id: 'saga-outbox', code: 'HLD-04', title: 'Distributed Transactions: Saga & Outbox Pattern', track: 'HLD', status: 'TODO', date: '2026-10-04', link: 'https://github.com/harshansarvaiya/SystemDesign', notes: 'Saga Orchestration vs Choreography. Debezium CDC + Outbox table to prevent dual writes.' },
+      { id: 'payment-gateway', code: 'HLD-05', title: 'High-Consistency Payment Gateway with Idempotency', track: 'HLD', status: 'TODO', date: '2026-10-11', link: 'https://github.com/harshansarvaiya/SystemDesign', notes: 'Distributed idempotency key (Redis SETNX), state machine, 2-phase settlement.' }
+    ];
+
+    // STATE INITIALIZATION
+    let dsaProblems = JSON.parse(localStorage.getItem('sde2_dsa_problems')) || DEFAULT_DSA;
+    let sdTopics = JSON.parse(localStorage.getItem('sde2_sd_topics')) || DEFAULT_SD;
+    let currentDsaFilter = 'ALL';
+    let currentSdFilter = 'ALL';
+
+    function saveState() {
+      localStorage.setItem('sde2_dsa_problems', JSON.stringify(dsaProblems));
+      localStorage.setItem('sde2_sd_topics', JSON.stringify(sdTopics));
+      updateProgressStats();
+    }
+
+    // TAB SWITCHING
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById(tabId).classList.remove('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('text-cyan-400');
+        btn.classList.add('text-slate-400');
+      });
+
+      if (tabId === 'tabDaily') document.getElementById('navBtnDaily').classList.add('text-cyan-400');
+      if (tabId === 'tabDSA') {
+        document.getElementById('navBtnDSA').classList.add('text-cyan-400');
+        renderDSAList();
+      }
+      if (tabId === 'tabSD') {
+        document.getElementById('navBtnSD').classList.add('text-cyan-400');
+        renderSDList();
+      }
+      if (tabId === 'tabSettings') document.getElementById('navBtnSettings').classList.add('text-cyan-400');
+      
+      window.scrollTo(0, 0);
+    }
+
+    // RENDER DSA LIST
+    function renderDSAList() {
+      const container = document.getElementById('dsaProblemList');
+      const query = (document.getElementById('dsaSearchInput').value || '').toLowerCase();
+      
+      const filtered = dsaProblems.filter(p => {
+        const matchesQuery = p.title.toLowerCase().includes(query) || 
+                             p.code.toLowerCase().includes(query) || 
+                             p.pattern.toLowerCase().includes(query);
+        if (!matchesQuery) return false;
+        if (currentDsaFilter === 'ALL') return true;
+        if (currentDsaFilter === 'TODO') return p.status === 'TODO';
+        if (currentDsaFilter === 'IN_PROGRESS') return p.status === 'IN_PROGRESS';
+        if (currentDsaFilter === 'DONE') return p.status === 'DONE';
+        return p.pattern.toLowerCase().includes(currentDsaFilter.toLowerCase());
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs">No matching problems found.</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(p => {
+        const statusColors = {
+          DONE: 'bg-emerald-950/80 text-emerald-300 border-emerald-800/80',
+          IN_PROGRESS: 'bg-blue-950/80 text-blue-300 border-blue-800/80',
+          TODO: 'bg-slate-800 text-slate-400 border-slate-700'
+        }[p.status] || 'bg-slate-800 text-slate-400';
+
+        const statusBadges = {
+          DONE: 'Done ✓',
+          IN_PROGRESS: 'In Progress',
+          TODO: 'Todo'
+        }[p.status] || p.status;
+
+        return `
+          <div class="bg-slate-900 border border-slate-800/90 rounded-2xl p-3.5 space-y-2 hover:border-slate-700 transition">
+            <div class="flex items-start justify-between gap-2">
+              <div class="space-y-0.5">
+                <div class="flex items-center space-x-2">
+                  <span class="text-[11px] font-bold text-slate-400">${p.code}</span>
+                  <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-cyan-300 border border-slate-700">${p.pattern}</span>
+                </div>
+                <h4 class="text-sm font-bold text-white leading-snug">${p.title}</h4>
+              </div>
+              <select onchange="updateDsaStatus('${p.id}', this.value)" class="text-[11px] font-semibold px-2.5 py-1 rounded-lg border focus:outline-none ${statusColors}">
+                <option value="TODO" ${p.status === 'TODO' ? 'selected' : ''}>Todo</option>
+                <option value="IN_PROGRESS" ${p.status === 'IN_PROGRESS' ? 'selected' : ''}>In Progress</option>
+                <option value="DONE" ${p.status === 'DONE' ? 'selected' : ''}>Done ✓</option>
+              </select>
+            </div>
+
+            ${p.notes ? `<p class="text-[11px] text-slate-400 bg-slate-950/60 p-2 rounded-lg border border-slate-800/50">${p.notes}</p>` : ''}
+
+            <div class="flex items-center justify-between text-[11px] text-slate-500 pt-1">
+              <span>Target: ${p.date || 'Flexible'}</span>
+              <div class="flex space-x-2">
+                <button onclick="deleteProblem('dsa', '${p.id}')" class="text-rose-400 hover:text-rose-300 text-[10px]">Delete</button>
+                ${p.link ? `<a href="${p.link}" target="_blank" rel="noreferrer" class="text-cyan-400 hover:underline font-semibold">Open LeetCode ↗</a>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // RENDER SD LIST
+    function renderSDList() {
+      const container = document.getElementById('sdTopicList');
+      const query = (document.getElementById('sdSearchInput').value || '').toLowerCase();
+      
+      const filtered = sdTopics.filter(t => {
+        const matchesQuery = t.title.toLowerCase().includes(query) || 
+                             t.code.toLowerCase().includes(query) || 
+                             t.track.toLowerCase().includes(query);
+        if (!matchesQuery) return false;
+        if (currentSdFilter === 'ALL') return true;
+        if (currentSdFilter === 'LLD') return t.track === 'LLD';
+        if (currentSdFilter === 'HLD') return t.track === 'HLD';
+        if (currentSdFilter === 'TODO') return t.status === 'TODO';
+        if (currentSdFilter === 'DONE') return t.status === 'DONE';
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs">No matching topics found.</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(t => {
+        const statusColors = {
+          DONE: 'bg-emerald-950/80 text-emerald-300 border-emerald-800/80',
+          IN_PROGRESS: 'bg-purple-950/80 text-purple-300 border-purple-800/80',
+          TODO: 'bg-slate-800 text-slate-400 border-slate-700'
+        }[t.status] || 'bg-slate-800 text-slate-400';
+
+        return `
+          <div class="bg-slate-900 border border-slate-800/90 rounded-2xl p-3.5 space-y-2 hover:border-slate-700 transition">
+            <div class="flex items-start justify-between gap-2">
+              <div class="space-y-0.5">
+                <div class="flex items-center space-x-2">
+                  <span class="text-[11px] font-bold text-slate-400">${t.code}</span>
+                  <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold ${t.track === 'LLD' ? 'bg-indigo-950 text-indigo-300 border-indigo-800/60' : 'bg-pink-950 text-pink-300 border-pink-800/60'} border">${t.track}</span>
+                </div>
+                <h4 class="text-sm font-bold text-white leading-snug">${t.title}</h4>
+              </div>
+              <select onchange="updateSdStatus('${t.id}', this.value)" class="text-[11px] font-semibold px-2.5 py-1 rounded-lg border focus:outline-none ${statusColors}">
+                <option value="TODO" ${t.status === 'TODO' ? 'selected' : ''}>Todo</option>
+                <option value="IN_PROGRESS" ${t.status === 'IN_PROGRESS' ? 'selected' : ''}>In Progress</option>
+                <option value="DONE" ${t.status === 'DONE' ? 'selected' : ''}>Done ✓</option>
+              </select>
+            </div>
+
+            ${t.notes ? `<p class="text-[11px] text-slate-400 bg-slate-950/60 p-2 rounded-lg border border-slate-800/50">${t.notes}</p>` : ''}
+
+            <div class="flex items-center justify-between text-[11px] text-slate-500 pt-1">
+              <span>Date: ${t.date || 'Weekend'}</span>
+              <div class="flex space-x-2">
+                <button onclick="deleteProblem('sd', '${t.id}')" class="text-rose-400 hover:text-rose-300 text-[10px]">Delete</button>
+                ${t.link ? `<a href="${t.link}" target="_blank" rel="noreferrer" class="text-purple-400 hover:underline font-semibold">GitHub Repo ↗</a>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // STATUS UPDATES
+    function updateDsaStatus(id, newStatus) {
+      const item = dsaProblems.find(p => p.id === id);
+      if (item) {
+        item.status = newStatus;
+        saveState();
+        renderDSAList();
+        updateDailyCard();
+      }
+    }
+
+    function updateSdStatus(id, newStatus) {
+      const item = sdTopics.find(t => t.id === id);
+      if (item) {
+        item.status = newStatus;
+        saveState();
+        renderSDList();
+        updateDailyCard();
+      }
+    }
+
+    function setFocusProblemStatus(id, status) {
+      updateDsaStatus(id, status);
+      updateDailyCard();
+    }
+
+    function setFocusSDStatus(id, status) {
+      updateSdStatus(id, status);
+      updateDailyCard();
+    }
+
+    function updateDailyCard() {
+      const lc974 = dsaProblems.find(p => p.id === '974');
+      if (lc974) {
+        ['btnDailyTodo', 'btnDailyProgress', 'btnDailyDone'].forEach(b => {
+          const el = document.getElementById(b);
+          if (el) el.className = 'px-3 py-1.5 text-xs rounded-lg font-medium transition border border-slate-700 bg-slate-800 text-slate-300';
+        });
+        if (lc974.status === 'TODO') document.getElementById('btnDailyTodo').className = 'px-3 py-1.5 text-xs rounded-lg font-medium transition border border-slate-500 bg-slate-700 text-white';
+        if (lc974.status === 'IN_PROGRESS') document.getElementById('btnDailyProgress').className = 'px-3 py-1.5 text-xs rounded-lg font-medium transition border border-blue-500 bg-blue-950 text-blue-300';
+        if (lc974.status === 'DONE') document.getElementById('btnDailyDone').className = 'px-3 py-1.5 text-xs rounded-lg font-medium transition border border-emerald-500 bg-emerald-950 text-emerald-300';
+      }
+
+      const lru = sdTopics.find(t => t.id === 'lru-cache');
+      if (lru) {
+        ['btnSdTodo', 'btnSdProgress', 'btnSdDone'].forEach(b => {
+          const el = document.getElementById(b);
+          if (el) el.className = 'px-3 py-1.5 text-xs rounded-lg font-medium transition border border-slate-700 bg-slate-800 text-slate-300';
+        });
+        if (lru.status === 'TODO') document.getElementById('btnSdTodo').className = 'px-3 py-1.5 text-xs rounded-lg font-medium transition border border-slate-500 bg-slate-700 text-white';
+        if (lru.status === 'IN_PROGRESS') document.getElementById('btnSdProgress').className = 'px-3 py-1.5 text-xs rounded-lg font-medium transition border border-purple-500 bg-purple-950 text-purple-300';
+        if (lru.status === 'DONE') document.getElementById('btnSdDone').className = 'px-3 py-1.5 text-xs rounded-lg font-medium transition border border-emerald-500 bg-emerald-950 text-emerald-300';
+      }
+    }
+
+    // FILTERS
+    function filterDSAList(filter) {
+      currentDsaFilter = filter;
+      document.querySelectorAll('.dsa-filter').forEach(btn => {
+        if (btn.getAttribute('data-filter') === filter) {
+          btn.className = 'dsa-filter px-3 py-1 rounded-full font-medium bg-cyan-950 text-cyan-300 border border-cyan-800';
+        } else {
+          btn.className = 'dsa-filter px-3 py-1 rounded-full font-medium bg-slate-800 text-slate-300 border border-slate-700';
+        }
+      });
+      renderDSAList();
+    }
+
+    function filterSDList(filter) {
+      currentSdFilter = filter;
+      document.querySelectorAll('.sd-filter').forEach(btn => {
+        if (btn.getAttribute('data-filter') === filter) {
+          btn.className = 'sd-filter px-3 py-1 rounded-full font-medium bg-purple-950 text-purple-300 border border-purple-800';
+        } else {
+          btn.className = 'sd-filter px-3 py-1 rounded-full font-medium bg-slate-800 text-slate-300 border border-slate-700';
+        }
+      });
+      renderSDList();
+    }
+
+    // PROGRESS STATS
+    function updateProgressStats() {
+      const dsaDone = dsaProblems.filter(p => p.status === 'DONE').length;
+      const sdDone = sdTopics.filter(t => t.status === 'DONE').length;
+      const totalItems = dsaProblems.length + sdTopics.length;
+      const totalDone = dsaDone + sdDone;
+      const percent = totalItems > 0 ? Math.round((totalDone / totalItems) * 100) : 0;
+
+      document.getElementById('globalProgressPercent').innerText = percent + '%';
+      document.getElementById('globalProgressBar').style.width = percent + '%';
+      document.getElementById('dsaProgressStat').innerText = `DSA: ${dsaDone} / ${dsaProblems.length} Done`;
+      document.getElementById('sdProgressStat').innerText = `SD: ${sdDone} / ${sdTopics.length} Done`;
+    }
+
+    // MODAL & CUSTOM ITEM CREATION
+    function toggleAddModal(type) {
+      const modal = document.getElementById('addModal');
+      if (!type) {
+        modal.classList.add('hidden');
+        return;
+      }
+      modal.classList.remove('hidden');
+      document.getElementById('formType').value = type;
+      document.getElementById('modalTitle').innerText = type === 'dsa' ? 'Add New DSA Problem' : 'Add System Design Topic';
+      document.getElementById('formPattern').placeholder = type === 'dsa' ? 'e.g. Sliding Window' : 'e.g. LLD or HLD';
+      document.getElementById('addForm').reset();
+    }
+
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      const type = document.getElementById('formType').value;
+      const title = document.getElementById('formTitle').value;
+      const pattern = document.getElementById('formPattern').value;
+      const code = document.getElementById('formCode').value || (type === 'dsa' ? 'LC' : 'SD');
+      const date = document.getElementById('formDate').value;
+      const status = document.getElementById('formStatus').value;
+      const link = document.getElementById('formLink').value;
+      const notes = document.getElementById('formNotes').value;
+
+      const newItem = {
+        id: 'user_' + Date.now(),
+        code,
+        title,
+        status,
+        date,
+        link,
+        notes
+      };
+
+      if (type === 'dsa') {
+        newItem.pattern = pattern;
+        dsaProblems.push(newItem);
+        renderDSAList();
+      } else {
+        newItem.track = pattern;
+        sdTopics.push(newItem);
+        renderSDList();
+      }
+
+      saveState();
+      toggleAddModal(null);
+    }
+
+    function deleteProblem(type, id) {
+      if (!confirm('Are you sure you want to remove this item?')) return;
+      if (type === 'dsa') {
+        dsaProblems = dsaProblems.filter(p => p.id !== id);
+        renderDSAList();
+      } else {
+        sdTopics = sdTopics.filter(t => t.id !== id);
+        renderSDList();
+      }
+      saveState();
+    }
+
+    // EXPORT / IMPORT
+    function exportData() {
+      const data = {
+        dsa: dsaProblems,
+        sd: sdTopics,
+        exportedAt: new Date().toISOString()
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `sde2-prep-backup-${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (imported.dsa && imported.sd) {
+            dsaProblems = imported.dsa;
+            sdTopics = imported.sd;
+            saveState();
+            renderDSAList();
+            renderSDList();
+            updateDailyCard();
+            alert('Progress restored successfully!');
+          } else {
+            alert('Invalid backup file format.');
+          }
+        } catch (err) {
+          alert('Failed to parse JSON file.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function resetDefaults() {
+      if (confirm('Reset to standard roadmap defaults? Your custom additions will be cleared.')) {
+        dsaProblems = DEFAULT_DSA;
+        sdTopics = DEFAULT_SD;
+        saveState();
+        renderDSAList();
+        renderSDList();
+        updateDailyCard();
+      }
+    }
+
+    // NOTIFICATIONS
+    function requestNotificationPermission() {
+      if (!('Notification' in window)) {
+        alert('Web Notifications are not supported in this browser environment. On iOS, add this app to your Home Screen to enable push.');
+        return;
+      }
+      Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          alert('Notification permission granted! You will receive daily alerts.');
+        } else {
+          alert('Notification permission was ' + permission);
+        }
+      });
+    }
+
+    function testNotification() {
+      if (Notification.permission === 'granted') {
+        new Notification('🎯 SDE-2 Daily Dispatch', {
+          body: 'Today: LC 974 (Subarrays Divisible by K) — 9:00 AM session ready.',
+          icon: 'icons/icon-192.png'
+        });
+      } else {
+        requestNotificationPermission();
+      }
+    }
+
+    // INITIAL LOAD
+    document.addEventListener('DOMContentLoaded', () => {
+      const d = new Date();
+      const options = { weekday: 'long', month: 'short', day: 'numeric' };
+      document.getElementById('todayDateStr').innerText = d.toLocaleDateString('en-US', options);
+      updateProgressStats();
+      updateDailyCard();
+      renderDSAList();
+      renderSDList();
+    });
+  </script>
+</body>
+</html>
