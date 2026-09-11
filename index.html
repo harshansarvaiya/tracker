@@ -72,6 +72,10 @@
         <span class="mr-1">🔥</span>
         <span id="streakCount">12</span> <span class="text-slate-400 text-[10px] ml-1 font-normal">days</span>
       </div>
+      <button id="headerSyncBtn" onclick="triggerManualSync()" title="Sync with Switch Notebook & GitHub" class="h-8 px-2 rounded-full bg-slate-800/90 border border-slate-700/60 flex items-center space-x-1 text-slate-300 hover:text-cyan-400 transition text-xs shadow-inner">
+        <span id="headerSyncIcon" class="text-xs">🔄</span>
+        <span id="headerSyncText" class="text-[10px] hidden sm:inline font-medium text-slate-400">Sync</span>
+      </button>
       <button onclick="toggleAIChatDrawer()" title="Open SDE-2 AI Copilot" class="w-8 h-8 rounded-full bg-cyan-950/80 border border-cyan-800/80 flex items-center justify-center text-cyan-300 hover:text-white hover:bg-cyan-900 transition relative">
         <span class="text-sm">🤖</span>
         <span class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
@@ -81,6 +85,14 @@
       </button>
     </div>
   </header>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="syncToast" class="fixed top-14 left-1/2 -translate-x-1/2 z-50 pointer-events-none transition-all duration-300 opacity-0 -translate-y-2 max-w-[90vw]">
+    <div class="bg-slate-900/95 border border-cyan-500/40 text-white text-xs px-3.5 py-1.5 rounded-full shadow-2xl backdrop-blur-md flex items-center space-x-2">
+      <span id="syncToastIcon">🔄</span>
+      <span id="syncToastMsg" class="font-medium text-slate-200">Synced with Notebook</span>
+    </div>
+  </div>
 
   <!-- MAIN VIEW CONTAINER -->
   <main class="max-w-2xl mx-auto px-4 py-4">
@@ -380,6 +392,81 @@
               <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
               <option value="gemini-2.5-pro">Gemini 2.5 Pro (Deep Architectural Reasoning)</option>
             </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- GITHUB & GOOGLE NOTEBOOK (SWITCH) TWO-WAY SYNC -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-lg">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="text-lg">🔄</span>
+            <h3 class="text-sm font-bold text-white">Notebook Bridge & Auto-Sync ("Switch")</h3>
+          </div>
+          <span id="syncSettingsBadge" class="px-2 py-0.5 rounded text-[10px] font-semibold bg-cyan-950 text-cyan-300 border border-cyan-800/80">Auto-Pull Ready</span>
+        </div>
+        <p class="text-xs text-slate-400 leading-relaxed">
+          Syncs seamlessly with your <strong class="text-white">Switch</strong> Google Colab / Gemini notebook. Commands run in your notebook (e.g. <code class="text-cyan-300 bg-slate-950 px-1 py-0.5 rounded">t.done('974')</code>) automatically reflect on this phone.
+        </p>
+
+        <div class="space-y-2.5 pt-1 text-xs">
+          <div>
+            <label class="block text-slate-400 mb-1 font-medium">GitHub Repository</label>
+            <input type="text" id="githubRepoInput" value="harshansarvaiya/tracker" onchange="saveGitHubRepoFromInput()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500 font-mono text-xs" placeholder="username/repository">
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="block text-slate-400 font-medium">GitHub Personal Access Token (Two-Way Sync)</label>
+              <a href="https://github.com/settings/tokens/new?scopes=repo&description=SDE2-Tracker-iPhone" target="_blank" rel="noreferrer" class="text-cyan-400 hover:underline text-[10px] flex items-center">
+                <span>Create Token</span> <span class="ml-0.5">↗</span>
+              </a>
+            </div>
+            <div class="flex space-x-2">
+              <input type="password" id="githubPatInput" placeholder="ghp_..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500 font-mono text-xs">
+              <button type="button" onclick="saveGitHubPatFromInput()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-xl transition shadow-md shadow-cyan-600/20">Save</button>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1">Reading notebook updates on iPhone is automatic. Token is only needed to push changes made on this phone back to GitHub.</p>
+          </div>
+
+          <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 mt-1">
+            <div>
+              <p class="font-medium text-white text-xs">Auto-Push iPhone Changes</p>
+              <p class="text-[11px] text-slate-400">Commit to GitHub whenever you mark problems done on phone</p>
+            </div>
+            <input type="checkbox" id="toggleAutoPush" checked onchange="saveAutoPushPref()" class="w-4 h-4 accent-cyan-500 rounded cursor-pointer">
+          </div>
+
+          <!-- SYNC BUTTONS -->
+          <div class="grid grid-cols-2 gap-2.5 pt-1">
+            <button type="button" onclick="triggerManualSync()" class="py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-semibold text-cyan-300 transition flex items-center justify-center">
+              <span class="mr-1.5">🔄</span> Pull Latest (Sync)
+            </button>
+            <button type="button" onclick="pushToGitHubManual()" class="py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-semibold text-emerald-300 transition flex items-center justify-center">
+              <span class="mr-1.5">⬆️</span> Push to GitHub
+            </button>
+          </div>
+
+          <!-- SYNC STATUS INFO -->
+          <div class="p-2.5 rounded-xl bg-slate-950/50 border border-slate-800/80 text-[11px] text-slate-400 flex items-center justify-between">
+            <span>Last Synced: <strong id="lastSyncTimeText" class="text-slate-300">Just now</strong></span>
+            <span id="lastSyncOriginBadge" class="px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-400">Local</span>
+          </div>
+
+          <!-- NOTEBOOK SNIPPET ACCORDION / CARD -->
+          <div class="mt-2 p-3 bg-indigo-950/40 border border-indigo-900/50 rounded-xl space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-indigo-300 flex items-center">
+                <span class="mr-1.5">🐍</span> 1-Line Colab / Gemini Code
+              </span>
+              <button type="button" onclick="copyNotebookSnippet()" class="text-[10px] text-indigo-300 hover:text-white px-2 py-0.5 rounded bg-indigo-900/60 border border-indigo-700/60">
+                Copy Code
+              </button>
+            </div>
+            <pre class="text-[10px] font-mono text-slate-300 bg-slate-950/90 p-2 rounded-lg overflow-x-auto border border-indigo-950"><code>!curl -s -O https://raw.githubusercontent.com/harshansarvaiya/tracker/main/tracker_sync.py
+from tracker_sync import Tracker
+t = Tracker(token="YOUR_GITHUB_TOKEN")
+t.done("974")  # Instantly updates your iPhone!</code></pre>
           </div>
         </div>
       </div>
@@ -685,10 +772,381 @@
     let currentDsaFilter = 'ALL';
     let currentSdFilter = 'ALL';
 
-    function saveState() {
+    // GITHUB NOTEBOOK BRIDGE & TWO-WAY SYNC (SWITCH)
+    let githubRepo = localStorage.getItem('sde2_github_repo') || 'harshansarvaiya/tracker';
+    let githubPat = localStorage.getItem('sde2_github_pat') || '';
+    let autoPushEnabled = localStorage.getItem('sde2_auto_push_github') !== 'false';
+    let lastSyncedAt = localStorage.getItem('sde2_last_synced_at') || null;
+    let currentRemoteSha = localStorage.getItem('sde2_remote_sha') || null;
+    let pushDebounceTimer = null;
+    let isSyncInProgress = false;
+
+    function getGithubRepo() {
+      return (localStorage.getItem('sde2_github_repo') || 'harshansarvaiya/tracker').trim();
+    }
+
+    function getGithubPat() {
+      return (localStorage.getItem('sde2_github_pat') || '').trim();
+    }
+
+    function isAutoPushEnabled() {
+      return localStorage.getItem('sde2_auto_push_github') !== 'false';
+    }
+
+    function saveState(reason = 'Update progress') {
       localStorage.setItem('sde2_dsa_problems', JSON.stringify(dsaProblems));
       localStorage.setItem('sde2_sd_topics', JSON.stringify(sdTopics));
       updateProgressStats();
+      schedulePushToGitHub(reason);
+    }
+
+    function showSyncToast(msg, icon = '🔄') {
+      const toast = document.getElementById('syncToast');
+      const toastMsg = document.getElementById('syncToastMsg');
+      const toastIcon = document.getElementById('syncToastIcon');
+      if (!toast || !toastMsg) return;
+      toastMsg.innerText = msg;
+      if (toastIcon) toastIcon.innerText = icon;
+      toast.classList.remove('opacity-0', '-translate-y-2');
+      toast.classList.add('opacity-100', 'translate-y-0');
+      setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', '-translate-y-2');
+      }, 3000);
+    }
+
+    function updateSyncUIStatus(data = null) {
+      const badge = document.getElementById('syncSettingsBadge');
+      const lastSyncText = document.getElementById('lastSyncTimeText');
+      const originBadge = document.getElementById('lastSyncOriginBadge');
+      const patInput = document.getElementById('githubPatInput');
+      const repoInput = document.getElementById('githubRepoInput');
+      const autoPushToggle = document.getElementById('toggleAutoPush');
+
+      if (repoInput) repoInput.value = getGithubRepo();
+      if (patInput && getGithubPat()) patInput.value = getGithubPat();
+      if (autoPushToggle) autoPushToggle.checked = isAutoPushEnabled();
+
+      const savedTime = localStorage.getItem('sde2_last_synced_at');
+      if (lastSyncText && savedTime) {
+        try {
+          const dt = new Date(savedTime);
+          lastSyncText.innerText = dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' (' + dt.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ')';
+        } catch (e) {
+          lastSyncText.innerText = savedTime;
+        }
+      }
+
+      if (badge) {
+        if (getGithubPat()) {
+          badge.className = 'px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-950 text-emerald-300 border border-emerald-800/80';
+          badge.innerText = 'Two-Way Live';
+        } else {
+          badge.className = 'px-2 py-0.5 rounded text-[10px] font-semibold bg-cyan-950 text-cyan-300 border border-cyan-800/80';
+          badge.innerText = 'Auto-Pull Active';
+        }
+      }
+
+      if (originBadge && data) {
+        originBadge.innerText = data.updatedBy || 'Notebook';
+      }
+    }
+
+    function saveGitHubSettingsFromInput() {
+      saveGitHubPatFromInput();
+      saveGitHubRepoFromInput();
+    }
+
+    function saveGitHubRepoFromInput() {
+      const val = (document.getElementById('githubRepoInput')?.value || '').trim();
+      if (val) {
+        githubRepo = val;
+        localStorage.setItem('sde2_github_repo', val);
+        showSyncToast('Repository set to ' + val, '📦');
+      }
+    }
+
+    function saveGitHubPatFromInput() {
+      const val = (document.getElementById('githubPatInput')?.value || '').trim();
+      githubPat = val;
+      localStorage.setItem('sde2_github_pat', val);
+      updateSyncUIStatus();
+      if (val) {
+        showSyncToast('GitHub PAT saved! Two-Way Sync Active ⚡', '🔑');
+      } else {
+        showSyncToast('PAT removed (pull-only active)', 'ℹ️');
+      }
+    }
+
+    function saveAutoPushPref() {
+      const chk = document.getElementById('toggleAutoPush')?.checked;
+      autoPushEnabled = !!chk;
+      localStorage.setItem('sde2_auto_push_github', autoPushEnabled ? 'true' : 'false');
+      showSyncToast(autoPushEnabled ? 'Auto-push enabled' : 'Auto-push disabled', '⚙️');
+    }
+
+    function copyNotebookSnippet() {
+      const repo = getGithubRepo();
+      const pat = getGithubPat() || 'YOUR_GITHUB_TOKEN';
+      const code = `!curl -s -O https://raw.githubusercontent.com/${repo}/main/tracker_sync.py\nfrom tracker_sync import Tracker\nt = Tracker(token="${pat}")\nt.done("974")  # Instantly updates your iPhone!`;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code).then(() => {
+          showSyncToast('Notebook code copied! 📋', '✓');
+        }).catch(() => {
+          prompt('Copy this code into your Switch notebook:', code);
+        });
+      } else {
+        prompt('Copy this code into your Switch notebook:', code);
+      }
+    }
+
+    async function fetchRemoteData() {
+      const repo = getGithubRepo();
+      const pat = getGithubPat();
+      const headers = { 'Accept': 'application/vnd.github.v3+json' };
+      if (pat) {
+        headers['Authorization'] = `Bearer ${pat}`;
+      }
+
+      // 1. Try real-time GitHub Contents API
+      try {
+        const resp = await fetch(`https://api.github.com/repos/${repo}/contents/data.json?ref=main&t=${Date.now()}`, {
+          headers
+        });
+        if (resp.ok) {
+          const result = await resp.json();
+          const rawUtf8 = decodeURIComponent(escape(atob(result.content.replace(/\s/g, ''))));
+          const parsed = JSON.parse(rawUtf8);
+          return { data: parsed, sha: result.sha, source: 'github_api' };
+        }
+      } catch (err) {
+        console.warn('GitHub API contents fetch failed, trying local data.json fallback', err);
+      }
+
+      // 2. Fallback to ./data.json
+      try {
+        const fallbackResp = await fetch(`./data.json?t=${Date.now()}`, { cache: 'no-store' });
+        if (fallbackResp.ok) {
+          const parsed = await fallbackResp.json();
+          return { data: parsed, sha: null, source: 'data_json' };
+        }
+      } catch (err) {
+        console.warn('Fallback data.json fetch failed', err);
+      }
+
+      return null;
+    }
+
+    async function syncFromRemote(isManual = false) {
+      if (isSyncInProgress) return;
+      isSyncInProgress = true;
+
+      const headerIcon = document.getElementById('headerSyncIcon');
+      const headerText = document.getElementById('headerSyncText');
+      if (headerIcon) headerIcon.classList.add('animate-spin');
+      if (headerText) headerText.innerText = 'Syncing...';
+
+      try {
+        const remote = await fetchRemoteData();
+        if (!remote || !remote.data) {
+          if (isManual) {
+            showSyncToast('Unable to reach GitHub. Check network.', '⚠️');
+          }
+          return;
+        }
+
+        const remoteData = remote.data;
+        if (remote.sha) {
+          currentRemoteSha = remote.sha;
+          localStorage.setItem('sde2_remote_sha', remote.sha);
+        }
+
+        const localSyncTime = localStorage.getItem('sde2_last_synced_at');
+        const remoteTime = remoteData.lastUpdated;
+
+        // Apply if remote is newer or manual sync requested
+        const shouldApply = isManual || !localSyncTime || (remoteTime && remoteTime > localSyncTime);
+
+        if (shouldApply) {
+          if (Array.isArray(remoteData.dsa) && remoteData.dsa.length > 0) {
+            dsaProblems = remoteData.dsa;
+            localStorage.setItem('sde2_dsa_problems', JSON.stringify(dsaProblems));
+          }
+          if (Array.isArray(remoteData.sd) && remoteData.sd.length > 0) {
+            sdTopics = remoteData.sd;
+            localStorage.setItem('sde2_sd_topics', JSON.stringify(sdTopics));
+          }
+          if (remoteData.streak !== undefined) {
+            const streakEl = document.getElementById('streakCount');
+            if (streakEl) streakEl.innerText = remoteData.streak;
+            localStorage.setItem('sde2_streak', remoteData.streak);
+          }
+
+          if (remoteTime) {
+            lastSyncedAt = remoteTime;
+            localStorage.setItem('sde2_last_synced_at', remoteTime);
+          }
+
+          updateProgressStats();
+          updateDailyCard();
+          renderDSAList();
+          renderSDList();
+          updateSyncUIStatus(remoteData);
+
+          const origin = remoteData.updatedBy || 'Switch Notebook';
+          showSyncToast(`Synced with ${origin}`, '⚡');
+        } else {
+          updateSyncUIStatus(remoteData);
+          if (isManual) {
+            showSyncToast('Already up to date with Notebook!', '✓');
+          }
+        }
+
+        if (headerIcon) {
+          headerIcon.classList.remove('animate-spin');
+          headerIcon.innerText = '✓';
+        }
+        if (headerText) {
+          headerText.innerText = 'Synced';
+          headerText.classList.add('text-emerald-400');
+        }
+        setTimeout(() => {
+          if (headerIcon) headerIcon.innerText = '🔄';
+          if (headerText) {
+            headerText.innerText = 'Sync';
+            headerText.classList.remove('text-emerald-400');
+          }
+        }, 2500);
+
+      } catch (err) {
+        console.error('Sync failed:', err);
+        if (isManual) {
+          showSyncToast('Sync error: ' + err.message, '❌');
+        }
+      } finally {
+        isSyncInProgress = false;
+        if (headerIcon) headerIcon.classList.remove('animate-spin');
+      }
+    }
+
+    async function pushToGitHub(commitMsg = 'Update from iPhone Tracker') {
+      const pat = getGithubPat();
+      const repo = getGithubRepo();
+
+      if (!pat) {
+        return false;
+      }
+
+      const headerIcon = document.getElementById('headerSyncIcon');
+      const headerText = document.getElementById('headerSyncText');
+      if (headerIcon) headerIcon.classList.add('animate-spin');
+      if (headerText) headerText.innerText = 'Pushing...';
+
+      try {
+        let shaToUse = currentRemoteSha || localStorage.getItem('sde2_remote_sha');
+        const checkResp = await fetch(`https://api.github.com/repos/${repo}/contents/data.json?ref=main&t=${Date.now()}`, {
+          headers: {
+            'Authorization': `Bearer ${pat}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        });
+
+        if (checkResp.ok) {
+          const checkResult = await checkResp.json();
+          shaToUse = checkResult.sha;
+        }
+
+        const now = new Date().toISOString();
+        const payloadData = {
+          version: 1,
+          lastUpdated: now,
+          updatedBy: 'iPhone PWA',
+          streak: parseInt(document.getElementById('streakCount')?.innerText || '12', 10),
+          recentCommands: [
+            { command: commitMsg, timestamp: now }
+          ],
+          dsa: dsaProblems,
+          sd: sdTopics
+        };
+
+        const utf8Str = unescape(encodeURIComponent(JSON.stringify(payloadData, null, 2)));
+        const base64Content = btoa(utf8Str);
+
+        const putResp = await fetch(`https://api.github.com/repos/${repo}/contents/data.json`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${pat}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            message: commitMsg,
+            content: base64Content,
+            sha: shaToUse,
+            branch: 'main'
+          })
+        });
+
+        if (putResp.ok) {
+          const putResult = await putResp.json();
+          currentRemoteSha = putResult.content.sha;
+          localStorage.setItem('sde2_remote_sha', currentRemoteSha);
+          localStorage.setItem('sde2_last_synced_at', now);
+          updateSyncUIStatus(payloadData);
+          showSyncToast('Pushed to GitHub & Notebook!', '☁️');
+
+          if (headerIcon) {
+            headerIcon.classList.remove('animate-spin');
+            headerIcon.innerText = '✓';
+          }
+          if (headerText) {
+            headerText.innerText = 'Pushed';
+            headerText.classList.add('text-emerald-400');
+          }
+          setTimeout(() => {
+            if (headerIcon) headerIcon.innerText = '🔄';
+            if (headerText) {
+              headerText.innerText = 'Sync';
+              headerText.classList.remove('text-emerald-400');
+            }
+          }, 2500);
+
+          return true;
+        } else {
+          const err = await putResp.json().catch(() => ({}));
+          throw new Error(err.message || 'Push failed with status ' + putResp.status);
+        }
+      } catch (err) {
+        console.error('Push to GitHub error:', err);
+        showSyncToast('Push failed: ' + err.message, '⚠️');
+        return false;
+      } finally {
+        if (headerIcon) headerIcon.classList.remove('animate-spin');
+      }
+    }
+
+    function schedulePushToGitHub(reason) {
+      if (!getGithubPat() || !isAutoPushEnabled()) return;
+      clearTimeout(pushDebounceTimer);
+      pushDebounceTimer = setTimeout(() => {
+        pushToGitHub(`[iPhone] ${reason || 'Update progress'}`);
+      }, 2000);
+    }
+
+    async function pushToGitHubManual() {
+      const pat = getGithubPat();
+      if (!pat) {
+        alert('To push changes from your iPhone to GitHub & your Switch notebook, please enter your GitHub Personal Access Token (PAT) above and tap Save.');
+        document.getElementById('githubPatInput')?.focus();
+        return;
+      }
+      showSyncToast('Pushing to GitHub...', '☁️');
+      await pushToGitHub('Manual sync push from iPhone');
+    }
+
+    function triggerManualSync() {
+      showSyncToast('Checking for updates...', '🔄');
+      syncFromRemote(true);
     }
 
     // TAB SWITCHING
@@ -859,7 +1317,7 @@
       const item = dsaProblems.find(p => p.id === id);
       if (item) {
         item.status = newStatus;
-        saveState();
+        saveState(`Mark ${item.code || item.title} as ${newStatus}`);
         renderDSAList();
         updateDailyCard();
       }
@@ -869,7 +1327,7 @@
       const item = sdTopics.find(t => t.id === id);
       if (item) {
         item.status = newStatus;
-        saveState();
+        saveState(`Mark ${item.code || item.title} as ${newStatus}`);
         renderSDList();
         updateDailyCard();
       }
@@ -993,7 +1451,7 @@
         renderSDList();
       }
 
-      saveState();
+      saveState(`Add ${type.toUpperCase()}: ${code} ${title}`);
       toggleAddModal(null);
     }
 
@@ -1006,7 +1464,7 @@
         sdTopics = sdTopics.filter(t => t.id !== id);
         renderSDList();
       }
-      saveState();
+      saveState(`Delete ${type.toUpperCase()} item ${id}`);
     }
 
     // EXPORT / IMPORT
@@ -2155,18 +2613,39 @@ Provide concise, senior engineer answers focusing on zero-allocation optimizatio
       renderAIChat();
     }
 
-    // INITIAL LOAD
+    // INITIAL LOAD & REACTIVE SYNC
     document.addEventListener('DOMContentLoaded', () => {
       const d = new Date();
       const options = { weekday: 'long', month: 'short', day: 'numeric' };
       document.getElementById('todayDateStr').innerText = d.toLocaleDateString('en-US', options);
+      
+      const cachedStreak = localStorage.getItem('sde2_streak');
+      if (cachedStreak && document.getElementById('streakCount')) {
+        document.getElementById('streakCount').innerText = cachedStreak;
+      }
+
       updateProgressStats();
       updateDailyCard();
       renderDSAList();
       renderSDList();
       loadAlertPreferences();
       updateNotifBadge();
+      updateSyncUIStatus();
       initAIAgent();
+
+      // Automatically pull latest notebook updates from GitHub on load
+      syncFromRemote(false);
+    });
+
+    // Auto-sync when returning to app on iPhone (app switcher, Safari tab focus, unlock)
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        syncFromRemote(false);
+      }
+    });
+
+    window.addEventListener('focus', () => {
+      syncFromRemote(false);
     });
   </script>
 </body>

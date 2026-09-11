@@ -1,0 +1,286 @@
+{
+  "version": 1,
+  "lastUpdated": "2026-09-11T17:30:00.000Z",
+  "updatedBy": "init",
+  "streak": 12,
+  "recentCommands": [
+    {
+      "command": "init",
+      "timestamp": "2026-09-11T17:30:00.000Z"
+    }
+  ],
+  "dsa": [
+    {
+      "id": "11",
+      "code": "LC 11",
+      "title": "Container With Most Water",
+      "pattern": "Two Pointers",
+      "status": "DONE",
+      "date": "2026-09-01",
+      "link": "https://leetcode.com/problems/container-with-most-water/",
+      "notes": "Area bounded by min height. Advancing shorter line maintains optimality."
+    },
+    {
+      "id": "15",
+      "code": "LC 15",
+      "title": "3Sum",
+      "pattern": "Two Pointers",
+      "status": "DONE",
+      "date": "2026-09-01",
+      "link": "https://leetcode.com/problems/3sum/",
+      "notes": "Sort + converging pointers. In-place duplicate skip after finding pair."
+    },
+    {
+      "id": "42",
+      "code": "LC 42",
+      "title": "Trapping Rain Water",
+      "pattern": "Two Pointers",
+      "status": "DONE",
+      "date": "2026-09-03",
+      "link": "https://leetcode.com/problems/trapping-rain-water/",
+      "notes": "O(1) space via leftMax and rightMax scalar tracking."
+    },
+    {
+      "id": "80",
+      "code": "LC 80",
+      "title": "Remove Duplicates from Sorted Array II",
+      "pattern": "Two Pointers",
+      "status": "DONE",
+      "date": "2026-09-01",
+      "link": "https://leetcode.com/problems/remove-duplicates-from-sorted-array-ii/",
+      "notes": "Fast/slow reader-writer boundary allowing at most k duplicates."
+    },
+    {
+      "id": "75",
+      "code": "LC 75",
+      "title": "Sort Colors",
+      "pattern": "Two Pointers",
+      "status": "TODO",
+      "date": "2026-09-12",
+      "link": "https://leetcode.com/problems/sort-colors/",
+      "notes": "Dutch National Flag 3-way partitioning. Low, mid, high pointers."
+    },
+    {
+      "id": "560",
+      "code": "LC 560",
+      "title": "Subarray Sum Equals K",
+      "pattern": "Prefix Sum",
+      "status": "DONE",
+      "date": "2026-08-31",
+      "link": "https://leetcode.com/problems/subarray-sum-equals-k/",
+      "notes": "Frequency map. S_{i-1} = S_j - k. Query before insert order."
+    },
+    {
+      "id": "525",
+      "code": "LC 525",
+      "title": "Contiguous Array",
+      "pattern": "Prefix Sum",
+      "status": "DONE",
+      "date": "2026-09-10",
+      "link": "https://leetcode.com/problems/contiguous-array/",
+      "notes": "Transform 0->-1, 1->1. Earliest index map with map.putIfAbsent."
+    },
+    {
+      "id": "974",
+      "code": "LC 974",
+      "title": "Subarrays Divisible by K",
+      "pattern": "Prefix Sum",
+      "status": "IN_PROGRESS",
+      "date": "2026-09-11",
+      "link": "https://leetcode.com/problems/subarray-sums-divisible-by-k/",
+      "notes": "Java negative modulo: ((sum%k)+k)%k. Use int[k] primitive buffer."
+    },
+    {
+      "id": "523",
+      "code": "LC 523",
+      "title": "Continuous Subarray Sum",
+      "pattern": "Prefix Sum",
+      "status": "TODO",
+      "date": "2026-09-13",
+      "link": "https://leetcode.com/problems/continuous-subarray-sum/",
+      "notes": "Modular index tracking with minimum length >= 2 requirement."
+    },
+    {
+      "id": "1248",
+      "code": "LC 1248",
+      "title": "Count Number of Nice Subarrays",
+      "pattern": "Prefix Sum",
+      "status": "TODO",
+      "date": "2026-09-14",
+      "link": "https://leetcode.com/problems/count-number-of-nice-subarrays/",
+      "notes": "Parity transformation mapping odd->1, even->0 to reduce to LC 560."
+    },
+    {
+      "id": "1371",
+      "code": "LC 1371",
+      "title": "Find Longest Substring Even Vowels",
+      "pattern": "Prefix Sum",
+      "status": "TODO",
+      "date": "2026-09-15",
+      "link": "https://leetcode.com/problems/find-the-longest-substring-containing-vowels-in-even-counts/",
+      "notes": "5-bit parity mask with int[32] earliest index buffer."
+    },
+    {
+      "id": "438",
+      "code": "LC 438",
+      "title": "Find All Anagrams in a String",
+      "pattern": "Sliding Window",
+      "status": "DONE",
+      "date": "2026-09-06",
+      "link": "https://leetcode.com/problems/find-all-anagrams-in-a-string/",
+      "notes": "Fixed window of size p.length() with frequency match."
+    },
+    {
+      "id": "3",
+      "code": "LC 3",
+      "title": "Longest Substring Without Repeating Characters",
+      "pattern": "Sliding Window",
+      "status": "TODO",
+      "date": "2026-09-16",
+      "link": "https://leetcode.com/problems/longest-substring-without-repeating-characters/",
+      "notes": "Dynamic sliding window with int[128] last seen index table."
+    },
+    {
+      "id": "76",
+      "code": "LC 76",
+      "title": "Minimum Window Substring",
+      "pattern": "Sliding Window",
+      "status": "TODO",
+      "date": "2026-09-17",
+      "link": "https://leetcode.com/problems/minimum-window-substring/",
+      "notes": "Expand right to fulfill condition, contract left to minimize length."
+    },
+    {
+      "id": "56",
+      "code": "LC 56",
+      "title": "Merge Intervals",
+      "pattern": "Overlapping Intervals",
+      "status": "TODO",
+      "date": "2026-09-18",
+      "link": "https://leetcode.com/problems/merge-intervals/",
+      "notes": "Sort by start time. Compare current start with previous end."
+    },
+    {
+      "id": "435",
+      "code": "LC 435",
+      "title": "Non-overlapping Intervals",
+      "pattern": "Overlapping Intervals",
+      "status": "TODO",
+      "date": "2026-09-19",
+      "link": "https://leetcode.com/problems/non-overlapping-intervals/",
+      "notes": "Greedy sort by end time. Pick earliest finishing interval."
+    },
+    {
+      "id": "739",
+      "code": "LC 739",
+      "title": "Daily Temperatures",
+      "pattern": "Monotonic Stack",
+      "status": "TODO",
+      "date": "2026-09-21",
+      "link": "https://leetcode.com/problems/daily-temperatures/",
+      "notes": "Monotonically decreasing stack storing indices. Next greater element."
+    },
+    {
+      "id": "239",
+      "code": "LC 239",
+      "title": "Sliding Window Maximum",
+      "pattern": "Monotonic Stack",
+      "status": "TODO",
+      "date": "2026-09-22",
+      "link": "https://leetcode.com/problems/sliding-window-maximum/",
+      "notes": "Monotonic deque maintaining descending order of element values."
+    }
+  ],
+  "sd": [
+    {
+      "id": "lru-cache",
+      "code": "LLD-01",
+      "title": "Thread-Safe In-Memory LRU Cache with TTL",
+      "track": "LLD",
+      "status": "IN_PROGRESS",
+      "date": "2026-09-12",
+      "link": "https://github.com/harshansarvaiya/SystemDesign",
+      "notes": "Doubly Linked List + HashMap. ReentrantReadWriteLock vs lock-striping."
+    },
+    {
+      "id": "rate-limiter-lld",
+      "code": "LLD-02",
+      "title": "In-Memory Rate Limiter (Token Bucket & Sliding Window)",
+      "track": "LLD",
+      "status": "TODO",
+      "date": "2026-09-19",
+      "link": "https://github.com/harshansarvaiya/SystemDesign",
+      "notes": "AtomicInteger, AtomicReference, lock-free token refill under high concurrency."
+    },
+    {
+      "id": "parking-lot",
+      "code": "LLD-03",
+      "title": "Parking Lot / Elevator Dispatcher",
+      "track": "LLD",
+      "status": "TODO",
+      "date": "2026-09-26",
+      "link": "https://github.com/harshansarvaiya/SystemDesign",
+      "notes": "State pattern, spot allocation strategy, concurrent check-in handling."
+    },
+    {
+      "id": "splitwise",
+      "code": "LLD-04",
+      "title": "Splitwise / Expense Sharing Service",
+      "track": "LLD",
+      "status": "TODO",
+      "date": "2026-10-03",
+      "link": "https://github.com/harshansarvaiya/SystemDesign",
+      "notes": "Strategy pattern for Equal/Exact/Percent splits. Balance sheet graph simplification."
+    },
+    {
+      "id": "storage-engines",
+      "code": "HLD-01",
+      "title": "Storage Engines & Partitioning Primitives",
+      "track": "HLD",
+      "status": "TODO",
+      "date": "2026-09-13",
+      "link": "https://github.com/harshansarvaiya/SystemDesign",
+      "notes": "B+ Tree (Postgres) vs LSM (Cassandra). Sharding, Consistent Hashing, Replication lag."
+    },
+    {
+      "id": "caching-topologies",
+      "code": "HLD-02",
+      "title": "Redis Caching Topologies & Stampede Mitigation",
+      "track": "HLD",
+      "status": "TODO",
+      "date": "2026-09-20",
+      "link": "https://github.com/harshansarvaiya/SystemDesign",
+      "notes": "Cache-Aside, Write-Through. Mitigating Avalanche (jitter) and Penetration (Bloom)."
+    },
+    {
+      "id": "kafka-streaming",
+      "code": "HLD-03",
+      "title": "Event-Driven Architecture & Kafka Deep Dive",
+      "track": "HLD",
+      "status": "TODO",
+      "date": "2026-09-27",
+      "link": "https://github.com/harshansarvaiya/SystemDesign",
+      "notes": "Partitions, consumer group rebalance, manual offset commits, poison pill DLQ."
+    },
+    {
+      "id": "saga-outbox",
+      "code": "HLD-04",
+      "title": "Distributed Transactions: Saga & Outbox Pattern",
+      "track": "HLD",
+      "status": "TODO",
+      "date": "2026-10-04",
+      "link": "https://github.com/harshansarvaiya/SystemDesign",
+      "notes": "Saga Orchestration vs Choreography. Debezium CDC + Outbox table to prevent dual writes."
+    },
+    {
+      "id": "payment-gateway",
+      "code": "HLD-05",
+      "title": "High-Consistency Payment Gateway with Idempotency",
+      "track": "HLD",
+      "status": "TODO",
+      "date": "2026-10-11",
+      "link": "https://github.com/harshansarvaiya/SystemDesign",
+      "notes": "Distributed idempotency key (Redis SETNX), state machine, 2-phase settlement."
+    }
+  ]
+}

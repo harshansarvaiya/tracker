@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sde2-tracker-v4';
+const CACHE_NAME = 'sde2-tracker-v5';
 const ASSETS = [
   './',
   './index.html',
@@ -26,6 +26,15 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  // Always fetch data.json and GitHub API live from network
+  if (url.pathname.endsWith('data.json') || url.hostname.includes('github.com')) {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cached) => cached || fetch(event.request))
   );
