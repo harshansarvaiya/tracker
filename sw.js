@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sde2-tracker-v2';
+const CACHE_NAME = 'sde2-tracker-v3';
 const ASSETS = [
   './',
   './index.html',

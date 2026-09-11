@@ -72,6 +72,10 @@
         <span class="mr-1">🔥</span>
         <span id="streakCount">12</span> <span class="text-slate-400 text-[10px] ml-1 font-normal">days</span>
       </div>
+      <button onclick="toggleAIChatDrawer()" title="Open SDE-2 AI Copilot" class="w-8 h-8 rounded-full bg-cyan-950/80 border border-cyan-800/80 flex items-center justify-center text-cyan-300 hover:text-white hover:bg-cyan-900 transition relative">
+        <span class="text-sm">🤖</span>
+        <span class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+      </button>
       <button onclick="requestNotificationPermission()" title="Enable Alerts" class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700/60 flex items-center justify-center text-slate-300 hover:text-cyan-400 transition">
         🔔
       </button>
@@ -339,6 +343,47 @@
         </div>
       </div>
 
+      <!-- GEMINI AI AGENT CONFIGURATION -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-lg">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="text-lg">🤖</span>
+            <h3 class="text-sm font-bold text-white">Gemini AI Agent Configuration</h3>
+          </div>
+          <span id="geminiStatusBadge" class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-400">Offline / Local Engine</span>
+        </div>
+        <p class="text-xs text-slate-400 leading-relaxed">
+          Your AI Copilot can execute tasks locally without any key. Add a free Google Gemini API key to unlock autonomous reasoning, multi-step problem planning, zero-allocation pitfall hints, and conversational tool calling.
+        </p>
+
+        <div class="space-y-2.5 pt-1 text-xs">
+          <div>
+            <label class="block text-slate-400 mb-1 font-medium">Google Gemini API Key</label>
+            <div class="flex space-x-2">
+              <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500 font-mono text-xs">
+              <button type="button" onclick="saveGeminiApiKeyFromInput()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-xl transition shadow-md shadow-cyan-600/20">Save</button>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between text-[11px] pt-0.5">
+            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" class="text-cyan-400 hover:underline flex items-center">
+              <span>Get Free API Key from Google AI Studio</span>
+              <span class="ml-1">↗</span>
+            </a>
+            <button type="button" onclick="testGeminiConnection()" class="text-purple-400 hover:text-purple-300 font-medium">Test Connection ⚡</button>
+          </div>
+
+          <div class="pt-1">
+            <label class="block text-slate-400 mb-1 font-medium">Preferred Gemini Model</label>
+            <select id="geminiModelSelect" onchange="saveGeminiModelFromSelect()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500 text-xs">
+              <option value="gemini-2.5-flash">Gemini 2.5 Flash (Fastest & Native Tool Calling - Recommended)</option>
+              <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+              <option value="gemini-2.5-pro">Gemini 2.5 Pro (Deep Architectural Reasoning)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       <!-- BACKUP / EXPORT SECTION -->
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
         <h3 class="text-sm font-bold text-white">Data Management</h3>
@@ -362,27 +407,167 @@
       </div>
     </section>
 
+    <!-- ================= TAB 5: AI COPILOT & AUTONOMOUS AGENT ================= -->
+    <section id="tabAI" class="space-y-4 tab-content hidden">
+      <!-- HERO HEADER CARD -->
+      <div class="bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/70 border border-cyan-500/30 rounded-2xl p-4 shadow-xl space-y-3 relative overflow-hidden">
+        <div class="absolute -right-6 -top-6 w-24 h-24 bg-cyan-500/10 rounded-full blur-xl pointer-events-none"></div>
+        <div class="flex justify-between items-start">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 text-xl">
+              🤖
+            </div>
+            <div>
+              <div class="flex items-center space-x-2">
+                <h2 class="text-base font-bold text-white tracking-tight">SDE-2 AI Copilot & Agent</h2>
+                <span id="tabAiModeBadge" class="px-2 py-0.5 rounded text-[10px] font-semibold bg-cyan-950 text-cyan-300 border border-cyan-800/80">Local Engine Ready</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-0.5">Assign tasks in natural language &bull; AI executes them directly</p>
+            </div>
+          </div>
+          <button onclick="clearAIChat()" title="Clear Conversation" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition border border-slate-700/60">
+            Clear
+          </button>
+        </div>
+
+        <!-- QUICK ACTION CHIPS -->
+        <div class="pt-1">
+          <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">⚡ 1-Tap Quick Tasks</p>
+          <div class="flex items-center space-x-2 overflow-x-auto pb-1 text-xs no-scrollbar">
+            <button onclick="quickActionTask('Mark LC 974 as Done')" class="px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-cyan-950 border border-slate-700 hover:border-cyan-700 text-slate-300 hover:text-cyan-300 whitespace-nowrap transition text-[11px]">
+              🎯 Mark LC 974 Done
+            </button>
+            <button onclick="quickActionTask('Add DSA problem LC 200 Number of Islands, Medium, Graph BFS/DFS')" class="px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-cyan-950 border border-slate-700 hover:border-cyan-700 text-slate-300 hover:text-cyan-300 whitespace-nowrap transition text-[11px]">
+              ➕ Add LC 200 (Islands)
+            </button>
+            <button onclick="quickActionTask('Give me senior pitfall and edge case tips for LC 974')" class="px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-cyan-950 border border-slate-700 hover:border-cyan-700 text-slate-300 hover:text-cyan-300 whitespace-nowrap transition text-[11px]">
+              💡 LC 974 Senior Tips
+            </button>
+            <button onclick="quickActionTask('Summarize my current roadmap progress and tell me what is pending')" class="px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-cyan-950 border border-slate-700 hover:border-cyan-700 text-slate-300 hover:text-cyan-300 whitespace-nowrap transition text-[11px]">
+              📊 Progress Audit
+            </button>
+            <button onclick="quickActionTask('Add System Design topic: Event-Driven Architecture with Kafka & CDC Debezium, HLD')" class="px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-purple-950 border border-slate-700 hover:border-purple-700 text-slate-300 hover:text-purple-300 whitespace-nowrap transition text-[11px]">
+              🏗️ Add Kafka HLD
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHAT MESSAGE FEED -->
+      <div id="tabChatFeed" class="space-y-3 min-h-[320px] max-h-[520px] overflow-y-auto p-3 bg-slate-950/50 border border-slate-900 rounded-2xl shadow-inner">
+        <!-- Rendered via JS -->
+      </div>
+
+      <!-- CHAT INPUT BAR -->
+      <form onsubmit="handleAIChatSubmit(event, 'tab')" class="relative flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-2xl p-1.5 focus-within:border-cyan-500 shadow-xl transition">
+        <input type="text" id="tabChatInput" placeholder="Tell me a task (e.g. 'mark 974 done', 'add LC 200', 'status')..." class="w-full bg-transparent px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none">
+        <button type="submit" id="tabChatSendBtn" class="px-4 py-2 bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-semibold rounded-xl text-xs transition shadow-md shadow-cyan-600/20 flex items-center whitespace-nowrap">
+          <span>Run</span>
+          <span class="ml-1 text-sm">➔</span>
+        </button>
+      </form>
+      <p class="text-[11px] text-slate-500 text-center">💡 Tip: You can also click the floating 🤖 button anywhere to launch Copilot in a slide-over drawer.</p>
+    </section>
+
   </main>
+
+  <!-- FLOATING AI AGENT LAUNCHER BUTTON -->
+  <button id="aiFabBtn" onclick="toggleAIChatDrawer()" title="Open SDE-2 AI Copilot" class="fixed bottom-20 right-4 z-40 w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-500 via-indigo-500 to-purple-600 p-0.5 shadow-2xl shadow-cyan-500/30 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center group">
+    <div class="w-full h-full bg-slate-950/90 rounded-[14px] flex items-center justify-center backdrop-blur-md group-hover:bg-slate-950/70 transition">
+      <span class="text-xl select-none group-hover:scale-110 transition-transform">🤖</span>
+      <span class="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+        <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-cyan-500 border-2 border-slate-900"></span>
+      </span>
+    </div>
+  </button>
+
+  <!-- FLOATING AI DRAWER BACKDROP -->
+  <div id="aiDrawerBackdrop" onclick="toggleAIChatDrawer(false)" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs transition-opacity duration-300 hidden"></div>
+
+  <!-- FLOATING AI DRAWER -->
+  <aside id="aiDrawer" class="fixed inset-y-0 right-0 z-50 w-full sm:w-[440px] max-w-full bg-[#070a13]/98 border-l border-slate-800/90 shadow-2xl flex flex-col transform translate-x-full transition-transform duration-300 ease-in-out backdrop-blur-xl">
+    <!-- DRAWER HEADER -->
+    <div class="px-4 py-3.5 border-b border-slate-800/80 flex items-center justify-between bg-slate-900/60">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center shadow-md shadow-cyan-500/20 text-base">
+          🤖
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-white leading-tight">SDE-2 AI Copilot</h3>
+          <span id="drawerAiModeBadge" class="text-[10px] text-cyan-400 font-medium">Local Engine Ready</span>
+        </div>
+      </div>
+      <div class="flex items-center space-x-1.5">
+        <button onclick="clearAIChat()" title="Clear Chat" class="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition text-xs">
+          🗑️
+        </button>
+        <button onclick="toggleAIChatDrawer(false)" title="Close" class="w-7 h-7 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition text-base">
+          &times;
+        </button>
+      </div>
+    </div>
+
+    <!-- QUICK CHIPS IN DRAWER -->
+    <div class="px-4 py-2 bg-slate-950/60 border-b border-slate-800/60 flex items-center space-x-2 overflow-x-auto no-scrollbar text-[11px]">
+      <button onclick="quickActionTask('Mark LC 974 as Done')" class="px-2 py-1 rounded-lg bg-slate-900 border border-slate-800 hover:border-cyan-700 text-slate-300 hover:text-cyan-300 whitespace-nowrap transition">
+        🎯 LC 974 Done
+      </button>
+      <button onclick="quickActionTask('Add DSA problem LC 200 Number of Islands, Medium, Graph BFS/DFS')" class="px-2 py-1 rounded-lg bg-slate-900 border border-slate-800 hover:border-cyan-700 text-slate-300 hover:text-cyan-300 whitespace-nowrap transition">
+        ➕ Add LC 200
+      </button>
+      <button onclick="quickActionTask('Give me senior pitfall and edge case tips for LC 974')" class="px-2 py-1 rounded-lg bg-slate-900 border border-slate-800 hover:border-cyan-700 text-slate-300 hover:text-cyan-300 whitespace-nowrap transition">
+        💡 Tips 974
+      </button>
+      <button onclick="quickActionTask('Summarize my current roadmap progress')" class="px-2 py-1 rounded-lg bg-slate-900 border border-slate-800 hover:border-cyan-700 text-slate-300 hover:text-cyan-300 whitespace-nowrap transition">
+        📊 Progress
+      </button>
+    </div>
+
+    <!-- DRAWER CHAT FEED -->
+    <div id="drawerChatFeed" class="flex-1 overflow-y-auto p-4 space-y-3">
+      <!-- Rendered via JS -->
+    </div>
+
+    <!-- DRAWER INPUT BAR -->
+    <div class="p-3 border-t border-slate-800/80 bg-slate-950/80">
+      <form onsubmit="handleAIChatSubmit(event, 'drawer')" class="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl p-1 focus-within:border-cyan-500 transition">
+        <input type="text" id="drawerChatInput" placeholder="Tell me a task to perform..." class="w-full bg-transparent px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none">
+        <button type="submit" id="drawerChatSendBtn" class="px-3.5 py-1.5 bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-semibold rounded-lg text-xs transition whitespace-nowrap">
+          Run ➔
+        </button>
+      </form>
+      <p class="text-[10px] text-slate-500 mt-1.5 text-center">Understands natural commands &bull; Connect Gemini key in Settings for AI</p>
+    </div>
+  </aside>
 
   <!-- ================= BOTTOM NAVIGATION BAR ================= -->
   <nav class="fixed bottom-0 left-0 right-0 z-50 bg-[#070a13]/95 backdrop-blur-xl border-t border-slate-800 bottom-bar">
     <div class="max-w-2xl mx-auto flex items-center justify-around text-xs py-2 px-1">
-      <button onclick="switchTab('tabDaily')" id="navBtnDaily" class="nav-btn flex flex-col items-center py-1 px-3 text-cyan-400 font-semibold transition">
+      <button onclick="switchTab('tabDaily')" id="navBtnDaily" class="nav-btn flex flex-col items-center py-1 px-2.5 text-cyan-400 font-semibold transition">
         <span class="text-lg">🎯</span>
         <span class="text-[10px] mt-0.5">Today</span>
       </button>
 
-      <button onclick="switchTab('tabDSA')" id="navBtnDSA" class="nav-btn flex flex-col items-center py-1 px-3 text-slate-400 hover:text-slate-200 transition">
+      <button onclick="switchTab('tabDSA')" id="navBtnDSA" class="nav-btn flex flex-col items-center py-1 px-2.5 text-slate-400 hover:text-slate-200 transition">
         <span class="text-lg">🧩</span>
         <span class="text-[10px] mt-0.5">DSA Tracker</span>
       </button>
 
-      <button onclick="switchTab('tabSD')" id="navBtnSD" class="nav-btn flex flex-col items-center py-1 px-3 text-slate-400 hover:text-slate-200 transition">
+      <button onclick="switchTab('tabSD')" id="navBtnSD" class="nav-btn flex flex-col items-center py-1 px-2.5 text-slate-400 hover:text-slate-200 transition">
         <span class="text-lg">🏗️</span>
         <span class="text-[10px] mt-0.5">System Design</span>
       </button>
 
-      <button onclick="switchTab('tabSettings')" id="navBtnSettings" class="nav-btn flex flex-col items-center py-1 px-3 text-slate-400 hover:text-slate-200 transition">
+      <button onclick="switchTab('tabAI')" id="navBtnAI" class="nav-btn flex flex-col items-center py-1 px-2.5 text-slate-400 hover:text-slate-200 transition relative">
+        <span class="text-lg relative">
+          🤖
+          <span class="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+        </span>
+        <span class="text-[10px] mt-0.5 font-medium">Copilot</span>
+      </button>
+
+      <button onclick="switchTab('tabSettings')" id="navBtnSettings" class="nav-btn flex flex-col items-center py-1 px-2.5 text-slate-400 hover:text-slate-200 transition">
         <span class="text-lg">⚙️</span>
         <span class="text-[10px] mt-0.5">Settings</span>
       </button>
@@ -522,9 +707,17 @@
       }
       if (tabId === 'tabSD') {
         document.getElementById('navBtnSD').classList.add('text-cyan-400');
-        renderSDList();\n      loadAlertPreferences();\n      updateNotifBadge();
+        renderSDList();
       }
-      if (tabId === 'tabSettings') document.getElementById('navBtnSettings').classList.add('text-cyan-400');
+      if (tabId === 'tabSettings') {
+        document.getElementById('navBtnSettings').classList.add('text-cyan-400');
+        loadAlertPreferences();
+        updateNotifBadge();
+      }
+      if (tabId === 'tabAI') {
+        document.getElementById('navBtnAI').classList.add('text-cyan-400');
+        renderAIChat();
+      }
       
       window.scrollTo(0, 0);
     }
@@ -672,7 +865,7 @@
       if (item) {
         item.status = newStatus;
         saveState();
-        renderSDList();\n      loadAlertPreferences();\n      updateNotifBadge();
+        renderSDList();
         updateDailyCard();
       }
     }
@@ -733,7 +926,7 @@
           btn.className = 'sd-filter px-3 py-1 rounded-full font-medium bg-slate-800 text-slate-300 border border-slate-700';
         }
       });
-      renderSDList();\n      loadAlertPreferences();\n      updateNotifBadge();
+      renderSDList();
     }
 
     // PROGRESS STATS
@@ -792,7 +985,7 @@
       } else {
         newItem.track = pattern;
         sdTopics.push(newItem);
-        renderSDList();\n      loadAlertPreferences();\n      updateNotifBadge();
+        renderSDList();
       }
 
       saveState();
@@ -806,7 +999,7 @@
         renderDSAList();
       } else {
         sdTopics = sdTopics.filter(t => t.id !== id);
-        renderSDList();\n      loadAlertPreferences();\n      updateNotifBadge();
+        renderSDList();
       }
       saveState();
     }
@@ -839,7 +1032,7 @@
             sdTopics = imported.sd;
             saveState();
             renderDSAList();
-            renderSDList();\n      loadAlertPreferences();\n      updateNotifBadge();
+            renderSDList();
             updateDailyCard();
             alert('Progress restored successfully!');
           } else {
@@ -858,7 +1051,7 @@
         sdTopics = DEFAULT_SD;
         saveState();
         renderDSAList();
-        renderSDList();\n      loadAlertPreferences();\n      updateNotifBadge();
+        renderSDList();
         updateDailyCard();
       }
     }
@@ -1017,6 +1210,946 @@
       URL.revokeObjectURL(url);
     }
 
+    // ================= SDE-2 AI COPILOT & AUTONOMOUS AGENT ENGINE =================
+    let geminiApiKey = localStorage.getItem('sde2_gemini_api_key') || '';
+    let geminiModel = localStorage.getItem('sde2_gemini_model') || 'gemini-2.5-flash';
+    let isAiThinking = false;
+
+    const DEFAULT_AI_WELCOME = [
+      {
+        role: 'assistant',
+        content: `👋 **Hey Harshan! I'm your SDE-2 Prep Copilot & Autonomous Agent.**\n\nI have direct access to your DSA roadmap and System Design topics. Tell me what to do, and I'll execute it immediately on your tracker!\n\n**Quick tasks you can assign me:**\n* \`Mark LC 974 as Done\`\n* \`Add DSA problem LC 200 Number of Islands, Medium, Graph BFS/DFS\`\n* \`Add System Design topic: Distributed Rate Limiter (LLD)\`\n* \`Summarize my current roadmap progress\`\n* \`Give me senior pitfall reminders for LC 974\`\n* \`Delete problem LC 75\`\n\n*Running with built-in Local Engine. Add your free Gemini API key in Settings or below for full generative reasoning and tool calling.*`,
+        actions: []
+      }
+    ];
+
+    let aiChatHistory = JSON.parse(localStorage.getItem('sde2_ai_chat_history')) || DEFAULT_AI_WELCOME;
+
+    // AI TOOL DECLARATIONS FOR GEMINI FUNCTION CALLING
+    const GEMINI_TOOL_DECLARATIONS = [
+      {
+        name: 'addDsaProblem',
+        description: 'Add a new Data Structures & Algorithms (DSA) LeetCode problem to the tracker roadmap.',
+        parameters: {
+          type: 'OBJECT',
+          properties: {
+            title: { type: 'STRING', description: 'Problem name/title (e.g. "Number of Islands", "Longest Substring Without Repeating Characters")' },
+            code: { type: 'STRING', description: 'LeetCode problem number or code (e.g. "LC 200", "LC 3")' },
+            pattern: { type: 'STRING', description: 'Algorithmic pattern or category (e.g. "Two Pointers", "Prefix Sum", "Sliding Window", "Graph BFS", "Dynamic Programming", "Monotonic Stack")' },
+            status: { type: 'STRING', enum: ['TODO', 'IN_PROGRESS', 'DONE'], description: 'Initial status of the problem' },
+            date: { type: 'STRING', description: 'Target date in YYYY-MM-DD format' },
+            link: { type: 'STRING', description: 'LeetCode problem URL' },
+            notes: { type: 'STRING', description: 'Senior engineer takeaways, zero-allocation tricks, edge-cases, time & space complexities' }
+          },
+          required: ['title', 'pattern']
+        }
+      },
+      {
+        name: 'updateDsaStatus',
+        description: 'Update the status (TODO, IN_PROGRESS, DONE) of an existing DSA LeetCode problem.',
+        parameters: {
+          type: 'OBJECT',
+          properties: {
+            identifier: { type: 'STRING', description: 'LeetCode number (e.g. "974", "LC 974", "11") or problem title substring' },
+            status: { type: 'STRING', enum: ['TODO', 'IN_PROGRESS', 'DONE'], description: 'The new status to set' }
+          },
+          required: ['identifier', 'status']
+        }
+      },
+      {
+        name: 'deleteDsaProblem',
+        description: 'Remove a DSA problem from the tracker roadmap.',
+        parameters: {
+          type: 'OBJECT',
+          properties: {
+            identifier: { type: 'STRING', description: 'LeetCode number or title substring to delete' }
+          },
+          required: ['identifier']
+        }
+      },
+      {
+        name: 'addSdTopic',
+        description: 'Add a new Low-Level Design (LLD) or High-Level Design (HLD) topic to the System Design roadmap.',
+        parameters: {
+          type: 'OBJECT',
+          properties: {
+            title: { type: 'STRING', description: 'Topic title (e.g. "Distributed Rate Limiter", "Kafka Event-Driven Architecture")' },
+            code: { type: 'STRING', description: 'Topic code (e.g. "LLD-05", "HLD-06")' },
+            track: { type: 'STRING', enum: ['LLD', 'HLD'], description: 'Whether this is Low-Level Design (LLD) or High-Level Design (HLD)' },
+            status: { type: 'STRING', enum: ['TODO', 'IN_PROGRESS', 'DONE'], description: 'Current status' },
+            date: { type: 'STRING', description: 'Target weekend or date' },
+            link: { type: 'STRING', description: 'GitHub repo or reference link' },
+            notes: { type: 'STRING', description: 'Senior evaluation points, concurrency primitives, trade-offs, architecture notes' }
+          },
+          required: ['title', 'track']
+        }
+      },
+      {
+        name: 'updateSdStatus',
+        description: 'Update the status of a System Design topic in the roadmap.',
+        parameters: {
+          type: 'OBJECT',
+          properties: {
+            identifier: { type: 'STRING', description: 'Topic code (e.g. "LLD-01") or title substring (e.g. "LRU Cache", "Kafka")' },
+            status: { type: 'STRING', enum: ['TODO', 'IN_PROGRESS', 'DONE'], description: 'The new status to set' }
+          },
+          required: ['identifier', 'status']
+        }
+      },
+      {
+        name: 'deleteSdTopic',
+        description: 'Delete a System Design topic from the roadmap.',
+        parameters: {
+          type: 'OBJECT',
+          properties: {
+            identifier: { type: 'STRING', description: 'Topic code or title substring to delete' }
+          },
+          required: ['identifier']
+        }
+      },
+      {
+        name: 'getTrackerSummary',
+        description: 'Retrieve current roadmap progress metrics, solved problem counts, streak, and in-progress targets.',
+        parameters: {
+          type: 'OBJECT',
+          properties: {}
+        }
+      },
+      {
+        name: 'filterOrNavigate',
+        description: 'Navigate between app tabs or filter the DSA/System Design list.',
+        parameters: {
+          type: 'OBJECT',
+          properties: {
+            tab: { type: 'STRING', enum: ['dsa', 'sd', 'tabDaily', 'tabDSA', 'tabSD', 'tabSettings'], description: 'Target section' },
+            query: { type: 'STRING', description: 'Search term' },
+            filter: { type: 'STRING', description: 'Filter pill category (e.g. "Prefix Sum", "Two Pointers", "LLD", "HLD", "TODO", "DONE")' }
+          }
+        }
+      }
+    ];
+
+    // AI EXECUTABLE TOOL IMPLEMENTATIONS
+    const AI_TOOLS = {
+      addDsaProblem({ title, code, pattern, status = 'TODO', date, link, notes }) {
+        if (!title) return { success: false, error: 'Problem title is required.' };
+        const cleanCode = code ? (code.toUpperCase().startsWith('LC') ? code : 'LC ' + code.trim()) : 'LC';
+        const numMatch = cleanCode.match(/\d+/);
+        const id = numMatch ? numMatch[0] : ('user_' + Date.now());
+        
+        const existing = dsaProblems.find(p => p.id === id || p.title.toLowerCase() === title.toLowerCase());
+        if (existing) {
+          return { success: false, error: `Problem "${title}" (${existing.code}) already exists in tracker with status ${existing.status}.` };
+        }
+
+        const newItem = {
+          id,
+          code: cleanCode,
+          title: title.trim(),
+          pattern: pattern || 'General DSA',
+          status: status && status.toUpperCase() === 'DONE' ? 'DONE' : (status && status.toUpperCase().includes('PROG') ? 'IN_PROGRESS' : 'TODO'),
+          date: date || new Date().toISOString().slice(0, 10),
+          link: link || (numMatch ? `https://leetcode.com/problem-list/` : ''),
+          notes: notes || ''
+        };
+
+        dsaProblems.push(newItem);
+        saveState();
+        renderDSAList();
+        updateDailyCard();
+        return {
+          success: true,
+          actionSummary: `Added ${newItem.code} (${newItem.title}) [${newItem.pattern}]`,
+          item: newItem
+        };
+      },
+
+      updateDsaStatus({ identifier, status }) {
+        if (!identifier) return { success: false, error: 'Problem identifier (number or title) is required.' };
+        const clean = identifier.toString().toLowerCase().replace(/^lc\s*/, '').trim();
+        const normStatus = status.toUpperCase() === 'DONE' ? 'DONE' : (status.toUpperCase().includes('PROG') ? 'IN_PROGRESS' : 'TODO');
+        
+        const item = dsaProblems.find(p => 
+          p.id.toLowerCase() === clean || 
+          p.code.toLowerCase().replace(/^lc\s*/, '').trim() === clean ||
+          p.title.toLowerCase().includes(clean)
+        );
+
+        if (!item) {
+          return { success: false, error: `Could not find DSA problem matching "${identifier}".` };
+        }
+
+        const prev = item.status;
+        item.status = normStatus;
+        saveState();
+        renderDSAList();
+        updateDailyCard();
+        return {
+          success: true,
+          actionSummary: `Marked ${item.code} (${item.title}) as ${normStatus} (was ${prev})`,
+          item
+        };
+      },
+
+      deleteDsaProblem({ identifier }) {
+        if (!identifier) return { success: false, error: 'Identifier is required.' };
+        const clean = identifier.toString().toLowerCase().replace(/^lc\s*/, '').trim();
+        const idx = dsaProblems.findIndex(p => 
+          p.id.toLowerCase() === clean || 
+          p.code.toLowerCase().replace(/^lc\s*/, '').trim() === clean ||
+          p.title.toLowerCase().includes(clean)
+        );
+
+        if (idx === -1) return { success: false, error: `DSA problem "${identifier}" not found.` };
+        const removed = dsaProblems.splice(idx, 1)[0];
+        saveState();
+        renderDSAList();
+        updateDailyCard();
+        return {
+          success: true,
+          actionSummary: `Deleted ${removed.code} (${removed.title}) from DSA tracker.`
+        };
+      },
+
+      addSdTopic({ title, code, track = 'LLD', status = 'TODO', date, link, notes }) {
+        if (!title) return { success: false, error: 'Topic title is required.' };
+        const normTrack = track && track.toUpperCase().includes('HLD') ? 'HLD' : 'LLD';
+        const normStatus = status && status.toUpperCase() === 'DONE' ? 'DONE' : (status && status.toUpperCase().includes('PROG') ? 'IN_PROGRESS' : 'TODO');
+        const count = sdTopics.filter(t => t.track === normTrack).length + 1;
+        const autoCode = code || `${normTrack}-0${count}`;
+
+        const newItem = {
+          id: 'sd_' + Date.now(),
+          code: autoCode,
+          title: title.trim(),
+          track: normTrack,
+          status: normStatus,
+          date: date || 'Weekend',
+          link: link || 'https://github.com/harshansarvaiya/SystemDesign',
+          notes: notes || ''
+        };
+
+        sdTopics.push(newItem);
+        saveState();
+        renderSDList();
+        updateDailyCard();
+        return {
+          success: true,
+          actionSummary: `Added SD Topic: ${newItem.code} (${newItem.title}) [${newItem.track}]`,
+          item: newItem
+        };
+      },
+
+      updateSdStatus({ identifier, status }) {
+        if (!identifier) return { success: false, error: 'Topic identifier is required.' };
+        const clean = identifier.toString().toLowerCase().trim();
+        const normStatus = status.toUpperCase() === 'DONE' ? 'DONE' : (status.toUpperCase().includes('PROG') ? 'IN_PROGRESS' : 'TODO');
+        
+        const item = sdTopics.find(t => 
+          t.id.toLowerCase() === clean || 
+          t.code.toLowerCase() === clean || 
+          t.title.toLowerCase().includes(clean)
+        );
+
+        if (!item) return { success: false, error: `Could not find SD topic matching "${identifier}".` };
+        const prev = item.status;
+        item.status = normStatus;
+        saveState();
+        renderSDList();
+        updateDailyCard();
+        return {
+          success: true,
+          actionSummary: `Marked SD topic ${item.code} (${item.title}) as ${normStatus} (was ${prev})`,
+          item
+        };
+      },
+
+      deleteSdTopic({ identifier }) {
+        if (!identifier) return { success: false, error: 'Identifier is required.' };
+        const clean = identifier.toString().toLowerCase().trim();
+        const idx = sdTopics.findIndex(t => 
+          t.id.toLowerCase() === clean || 
+          t.code.toLowerCase() === clean || 
+          t.title.toLowerCase().includes(clean)
+        );
+
+        if (idx === -1) return { success: false, error: `System Design topic "${identifier}" not found.` };
+        const removed = sdTopics.splice(idx, 1)[0];
+        saveState();
+        renderSDList();
+        updateDailyCard();
+        return {
+          success: true,
+          actionSummary: `Deleted ${removed.code} (${removed.title}) from System Design roadmap.`
+        };
+      },
+
+      getTrackerSummary() {
+        const dsaDone = dsaProblems.filter(p => p.status === 'DONE').length;
+        const dsaProg = dsaProblems.filter(p => p.status === 'IN_PROGRESS').length;
+        const sdDone = sdTopics.filter(t => t.status === 'DONE').length;
+        const sdProg = sdTopics.filter(t => t.status === 'IN_PROGRESS').length;
+        const total = dsaProblems.length + sdTopics.length;
+        const completed = dsaDone + sdDone;
+        const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+        
+        return {
+          success: true,
+          actionSummary: `Progress Summary: ${pct}% Total Complete`,
+          stats: {
+            percent: `${pct}%`,
+            dsaCompleted: `${dsaDone}/${dsaProblems.length}`,
+            dsaInProgress: dsaProg,
+            sdCompleted: `${sdDone}/${sdTopics.length}`,
+            sdInProgress: sdProg,
+            streakDays: document.getElementById('streakCount')?.innerText || '12',
+            todayFocus: dsaProblems.find(p => p.id === '974')?.title || 'Subarray Sums Divisible by K',
+            weekendSdFocus: sdTopics.find(t => t.id === 'lru-cache')?.title || 'Thread-Safe LRU Cache'
+          }
+        };
+      },
+
+      filterOrNavigate({ tab, query, filter }) {
+        if (tab === 'dsa' || tab === 'tabDSA') {
+          switchTab('tabDSA');
+          if (filter) filterDSAList(filter);
+          if (query !== undefined) {
+            document.getElementById('dsaSearchInput').value = query;
+            renderDSAList();
+          }
+          return { success: true, actionSummary: `Opened DSA Tracker (Filter: ${filter || query || 'All'})` };
+        } else if (tab === 'sd' || tab === 'tabSD') {
+          switchTab('tabSD');
+          if (filter) filterSDList(filter);
+          if (query !== undefined) {
+            document.getElementById('sdSearchInput').value = query;
+            renderSDList();
+          }
+          return { success: true, actionSummary: `Opened System Design (Filter: ${filter || query || 'All'})` };
+        } else if (tab) {
+          switchTab(tab);
+          return { success: true, actionSummary: `Navigated to ${tab}` };
+        }
+        return { success: false, error: 'Target tab missing.' };
+      }
+    };
+
+    function executeAITool(name, args) {
+      if (AI_TOOLS[name]) {
+        try {
+          return AI_TOOLS[name](args || {});
+        } catch (err) {
+          return { success: false, error: err.message };
+        }
+      }
+      return { success: false, error: `Tool ${name} not found.` };
+    }
+
+    // LOCAL NATURAL INTENT PARSER (Zero-key offline execution)
+    function parseAndExecuteLocalIntent(text) {
+      const lower = text.toLowerCase().trim();
+      const actions = [];
+
+      // 1. Mark status (Done / In Progress / Todo)
+      // e.g., "mark 974 as done", "mark lc 974 done", "done 974", "solved lc 974", "mark lru cache done"
+      const markDoneMatch = lower.match(/(?:mark|set)\s+(?:lc\s*|problem\s*)?([0-9a-z\-_ ]+?)\s+(?:as\s+)?(done|completed|finished)/i) ||
+                            lower.match(/(?:done|solved|completed)\s+(?:lc\s*|problem\s*)?([0-9a-z\-_ ]+)/i);
+      if (markDoneMatch) {
+        const id = (markDoneMatch[1] || '').trim();
+        // Check DSA first, then SD
+        const res = AI_TOOLS.updateDsaStatus({ identifier: id, status: 'DONE' });
+        if (res.success) {
+          actions.push({ name: 'updateDsaStatus', detail: res.actionSummary });
+          return {
+            content: `✅ **Task Completed!**\n\nMarked **${res.item.code} (${res.item.title})** as **DONE ✓**.\nYour global progress has been updated! Keep pushing! 🔥`,
+            actions
+          };
+        } else {
+          // Try SD
+          const sdRes = AI_TOOLS.updateSdStatus({ identifier: id, status: 'DONE' });
+          if (sdRes.success) {
+            actions.push({ name: 'updateSdStatus', detail: sdRes.actionSummary });
+            return {
+              content: `✅ **Task Completed!**\n\nMarked System Design topic **${sdRes.item.code} (${sdRes.item.title})** as **DONE ✓**.`,
+              actions
+            };
+          }
+        }
+      }
+
+      // Mark In Progress / Todo
+      const markProgMatch = lower.match(/(?:mark|set)\s+(?:lc\s*|problem\s*)?([0-9a-z\-_ ]+?)\s+(?:as\s+)?(in[ _-]progress|started)/i);
+      if (markProgMatch) {
+        const id = (markProgMatch[1] || '').trim();
+        const res = AI_TOOLS.updateDsaStatus({ identifier: id, status: 'IN_PROGRESS' });
+        if (res.success) {
+          actions.push({ name: 'updateDsaStatus', detail: res.actionSummary });
+          return {
+            content: `⏳ **Task Updated!**\n\nSet **${res.item.code} (${res.item.title})** to **IN PROGRESS**. Focus session activated!`,
+            actions
+          };
+        }
+      }
+
+      const markTodoMatch = lower.match(/(?:mark|set)\s+(?:lc\s*|problem\s*)?([0-9a-z\-_ ]+?)\s+(?:as\s+)?(todo)/i) ||
+                            lower.match(/^todo\s+(?:lc\s*|problem\s*)?([0-9a-z\-_ ]+)/i);
+      if (markTodoMatch) {
+        const id = (markTodoMatch[1] || '').trim();
+        const res = AI_TOOLS.updateDsaStatus({ identifier: id, status: 'TODO' });
+        if (res.success) {
+          actions.push({ name: 'updateDsaStatus', detail: res.actionSummary });
+          return { content: `Set **${res.item.code} (${res.item.title})** to **TODO**.`, actions };
+        }
+      }
+
+      // 2. Add DSA Problem
+      // e.g., "add dsa lc 200 Number of Islands, Medium, Graph BFS/DFS"
+      if (lower.startsWith('add dsa') || lower.startsWith('add problem') || (lower.startsWith('add ') && lower.includes('lc '))) {
+        let raw = text.replace(/^add\s+(?:dsa\s+|problem\s+)?/i, '').trim();
+        let lcCode = 'LC';
+        const codeMatch = raw.match(/lc\s*(\d+)/i);
+        if (codeMatch) {
+          lcCode = `LC ${codeMatch[1]}`;
+          raw = raw.replace(/lc\s*\d+/i, '').trim();
+        }
+
+        // Split by comma
+        const parts = raw.split(',').map(s => s.trim()).filter(Boolean);
+        const title = parts[0] || 'New DSA Problem';
+        let pattern = parts[1] || 'General DSA';
+        let notes = parts.slice(2).join(', ') || '';
+
+        // Check common patterns in title/raw
+        const knownPatterns = ['Two Pointers', 'Prefix Sum', 'Sliding Window', 'Monotonic Stack', 'Overlapping Intervals', 'Graph BFS', 'Graph DFS', 'Dynamic Programming', 'Binary Search', 'Trees'];
+        for (const kp of knownPatterns) {
+          if (raw.toLowerCase().includes(kp.toLowerCase())) {
+            pattern = kp;
+            break;
+          }
+        }
+
+        const res = AI_TOOLS.addDsaProblem({
+          title,
+          code: lcCode,
+          pattern,
+          status: 'TODO',
+          notes
+        });
+
+        if (res.success) {
+          actions.push({ name: 'addDsaProblem', detail: res.actionSummary });
+          return {
+            content: `⚡ **Action Executed!**\n\nAdded **${res.item.code}: ${res.item.title}** to your DSA Roadmap.\n* **Pattern:** ${res.item.pattern}\n* **Status:** ${res.item.status}\n* **Takeaways:** ${res.item.notes || 'None added yet'}`,
+            actions
+          };
+        } else {
+          return { content: `⚠️ ${res.error}`, actions };
+        }
+      }
+
+      // 3. Add System Design Topic
+      // e.g., "add sd Kafka Event Streaming, HLD"
+      if (lower.startsWith('add sd') || lower.startsWith('add system design') || lower.startsWith('add topic')) {
+        let raw = text.replace(/^add\s+(?:sd\s+|system design\s+|topic\s+)?/i, '').trim();
+        const parts = raw.split(',').map(s => s.trim()).filter(Boolean);
+        const title = parts[0] || 'System Design Topic';
+        const track = (raw.toUpperCase().includes('HLD') || (parts[1] && parts[1].toUpperCase().includes('HLD'))) ? 'HLD' : 'LLD';
+        const notes = parts.slice(1).filter(p => !p.toUpperCase().includes('LLD') && !p.toUpperCase().includes('HLD')).join(', ');
+
+        const res = AI_TOOLS.addSdTopic({
+          title,
+          track,
+          status: 'TODO',
+          notes
+        });
+
+        if (res.success) {
+          actions.push({ name: 'addSdTopic', detail: res.actionSummary });
+          return {
+            content: `🏗️ **System Design Topic Created!**\n\nAdded **${res.item.code}: ${res.item.title}** under **${res.item.track}**.\nReady for weekend deep dive!`,
+            actions
+          };
+        } else {
+          return { content: `⚠️ ${res.error}`, actions };
+        }
+      }
+
+      // 4. Delete Problem or Topic
+      const delMatch = lower.match(/^(?:delete|remove)\s+(?:dsa\s+|sd\s+|problem\s+|topic\s+)?([0-9a-z\-_ ]+)/i);
+      if (delMatch) {
+        const id = delMatch[1].trim();
+        const res = AI_TOOLS.deleteDsaProblem({ identifier: id });
+        if (res.success) {
+          actions.push({ name: 'deleteDsaProblem', detail: res.actionSummary });
+          return { content: `🗑️ ${res.actionSummary}`, actions };
+        }
+        const sdRes = AI_TOOLS.deleteSdTopic({ identifier: id });
+        if (sdRes.success) {
+          actions.push({ name: 'deleteSdTopic', detail: sdRes.actionSummary });
+          return { content: `🗑️ ${sdRes.actionSummary}`, actions };
+        }
+      }
+
+      // 5. Progress / Summary
+      if (/^(?:progress|status|stats|summary|report|audit|how am i doing)/i.test(lower)) {
+        const summary = AI_TOOLS.getTrackerSummary();
+        actions.push({ name: 'getTrackerSummary', detail: summary.actionSummary });
+        const s = summary.stats;
+        return {
+          content: `📊 **SDE-2 Preparation Progress Audit**\n\n* **Overall Completion:** \`${s.percent}\`\n* **DSA Solved:** \`${s.dsaCompleted}\` (${s.dsaInProgress} In Progress)\n* **System Design Covered:** \`${s.sdCompleted}\` (${s.sdInProgress} In Progress)\n* **Current Streak:** 🔥 \`${s.streakDays} days\`\n* **Today's DSA Target:** ${s.todayFocus}\n* **Weekend SD Target:** ${s.weekendSdFocus}\n\n*Consistency is your greatest leverage. Keep your daily 60-minute window protected!*`,
+          actions
+        };
+      }
+
+      // 6. Senior Tips / Pitfalls
+      if (/(?:hint|pitfall|tip|edge case|nuance|senior reminder)/i.test(lower)) {
+        const num = lower.match(/\d+/);
+        let item = null;
+        if (num) {
+          item = dsaProblems.find(p => p.id === num[0] || p.code.includes(num[0]));
+        }
+        if (!item) {
+          // Default to today's focus problem
+          item = dsaProblems.find(p => p.id === '974');
+        }
+
+        if (item) {
+          return {
+            content: `💡 **Senior Architectural Pitfalls & Edge Cases for ${item.code} (${item.title})**\n\n* **Algorithmic Pattern:** \`${item.pattern}\`\n* **Key Invariant:** ${item.notes || 'Track boundary conditions, modulo wrapping, and avoid excess heap allocations.'}\n* **Senior Interview Nuance:** In high-throughput Java production systems, prefer fixed primitive arrays (\`int[k]\`) over autoboxed \`HashMap<Integer, Integer>\` to eliminate GC nursery churn. Guard against negative dividend modulo: \`((sum % k) + k) % k\`!`,
+            actions
+          };
+        }
+      }
+
+      // 7. Navigation / Filter
+      if (lower.startsWith('filter') || lower.startsWith('search') || lower.startsWith('show')) {
+        if (lower.includes('two pointer') || lower.includes('prefix') || lower.includes('window') || lower.includes('interval')) {
+          const filter = lower.includes('prefix') ? 'Prefix Sum' : (lower.includes('two pointer') ? 'Two Pointers' : 'ALL');
+          const res = AI_TOOLS.filterOrNavigate({ tab: 'dsa', filter });
+          actions.push({ name: 'filterOrNavigate', detail: res.actionSummary });
+          return { content: `🔍 Switched to DSA tracker filtered by **${filter}**.`, actions };
+        }
+        if (lower.includes('lld') || lower.includes('hld')) {
+          const filter = lower.includes('lld') ? 'LLD' : 'HLD';
+          const res = AI_TOOLS.filterOrNavigate({ tab: 'sd', filter });
+          actions.push({ name: 'filterOrNavigate', detail: res.actionSummary });
+          return { content: `🏗️ Switched to System Design tracker filtered by **${filter}**.`, actions };
+        }
+      }
+
+      // 8. Help / Supported commands
+      return {
+        content: `🤖 **Antigravity SDE-2 Agent Commands:**\n\nI can execute actions on your roadmap directly. Try typing:\n* \`mark 974 done\` (or \`done 974\`, \`mark 974 in progress\`)\n* \`add dsa LC 200 Number of Islands, Graph BFS, Medium\`\n* \`add sd Distributed Rate Limiter, LLD\`\n* \`status\` or \`progress\`\n* \`hint 974\` or \`pitfalls\`\n* \`delete LC 75\`\n* \`filter prefix sum\`\n\n> [!TIP]\n> **Pro-Tip**: Add your free Google Gemini API key in **Settings** to enable full conversational intelligence, multi-step problem generation, and autonomous tool calling!`,
+        actions
+      };
+    }
+
+    // GEMINI REST API AGENT WITH FUNCTION CALLING
+    async function executeWithGemini(userText) {
+      if (!geminiApiKey) {
+        return parseAndExecuteLocalIntent(userText);
+      }
+
+      const actions = [];
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiApiKey}`;
+
+      // Build conversation history in Gemini format
+      const contents = [];
+      
+      // System instructions as developer context
+      const systemInstruction = {
+        parts: [{
+          text: `You are Antigravity, an elite SDE-2 Mentor and Autonomous Coding Copilot embedded inside Harshan Sarvaiya's SDE-2 Prep Tracker application.
+You have direct access to tools that can inspect, add, update, and delete DSA problems and System Design topics.
+When the user instructs you to perform any task (such as marking a problem done, adding a problem or system design topic, adjusting status, filtering, or checking progress), YOU MUST CALL THE APPROPRIATE TOOL(S).
+Provide concise, senior engineer answers focusing on zero-allocation optimizations, concurrency invariants, lock contention, GC pressure, and production scale nuances.`
+        }]
+      };
+
+      // Push recent conversation context
+      const recentHistory = aiChatHistory.slice(-8);
+      for (const msg of recentHistory) {
+        if (msg.role === 'user') {
+          contents.push({ role: 'user', parts: [{ text: msg.content }] });
+        } else if (msg.role === 'assistant' && msg.content) {
+          contents.push({ role: 'model', parts: [{ text: msg.content.slice(0, 500) }] });
+        }
+      }
+
+      // Add the current user message
+      contents.push({ role: 'user', parts: [{ text: userText }] });
+
+      const payload = {
+        systemInstruction,
+        contents,
+        tools: [{ functionDeclarations: GEMINI_TOOL_DECLARATIONS }],
+        generationConfig: {
+          temperature: 0.3,
+          maxOutputTokens: 1000
+        }
+      };
+
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          console.warn('Gemini API error, falling back to local engine:', errData);
+          const fallback = parseAndExecuteLocalIntent(userText);
+          fallback.content = `*(Gemini API returned ${response.status} (${errData?.error?.message || 'Quota or Key Error'}). Fallback to Local Engine executed)*\n\n` + fallback.content;
+          return fallback;
+        }
+
+        const data = await response.json();
+        const candidate = data.candidates?.[0];
+        if (!candidate || !candidate.content) {
+          return parseAndExecuteLocalIntent(userText);
+        }
+
+        const parts = candidate.content.parts || [];
+        const functionCalls = parts.filter(p => p.functionCall);
+
+        // If Gemini called tools, execute them live!
+        if (functionCalls.length > 0) {
+          const toolResponses = [];
+          for (const call of functionCalls) {
+            const toolName = call.functionCall.name;
+            const toolArgs = call.functionCall.args || {};
+            const result = executeAITool(toolName, toolArgs);
+            actions.push({
+              name: toolName,
+              detail: result.actionSummary || result.message || (result.success ? 'Success' : result.error)
+            });
+
+            toolResponses.push({
+              functionResponse: {
+                name: toolName,
+                response: result
+              }
+            });
+          }
+
+          // Second turn: Send tool results back to Gemini for conversational wrap-up
+          const secondTurnContents = [
+            ...contents,
+            candidate.content,
+            { role: 'user', parts: toolResponses }
+          ];
+
+          const secondPayload = {
+            systemInstruction,
+            contents: secondTurnContents,
+            generationConfig: { temperature: 0.4, maxOutputTokens: 800 }
+          };
+
+          const secondResp = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(secondPayload)
+          });
+
+          if (secondResp.ok) {
+            const secondData = await secondResp.json();
+            const replyText = secondData.candidates?.[0]?.content?.parts?.map(p => p.text).filter(Boolean).join('\n') || '';
+            return {
+              content: replyText || `Executed ${functionCalls.length} actions successfully.`,
+              actions
+            };
+          } else {
+            return {
+              content: `✅ Executed ${functionCalls.length} roadmap updates successfully.`,
+              actions
+            };
+          }
+        }
+
+        // Pure text response from Gemini
+        const textReply = parts.map(p => p.text).filter(Boolean).join('\n');
+        return {
+          content: textReply || 'Understood.',
+          actions
+        };
+
+      } catch (networkErr) {
+        console.warn('Network error calling Gemini, falling back to local engine:', networkErr);
+        const fallback = parseAndExecuteLocalIntent(userText);
+        fallback.content = `*(Network error contacting Gemini. Local Engine executed)*\n\n` + fallback.content;
+        return fallback;
+      }
+    }
+
+    // CHAT SUBMIT DISPATCHER
+    async function handleAIChatSubmit(e, source) {
+      if (e) e.preventDefault();
+      const inputEl = source === 'drawer' ? document.getElementById('drawerChatInput') : document.getElementById('tabChatInput');
+      const text = (inputEl.value || '').trim();
+      if (!text || isAiThinking) return;
+
+      inputEl.value = '';
+      const otherInput = source === 'drawer' ? document.getElementById('tabChatInput') : document.getElementById('drawerChatInput');
+      if (otherInput) otherInput.value = '';
+
+      // Append user message
+      aiChatHistory.push({ role: 'user', content: text, actions: [] });
+      saveAIChatHistory();
+      isAiThinking = true;
+      renderAIChat();
+
+      // Execute via Gemini or Local Engine
+      let agentResult;
+      try {
+        if (geminiApiKey) {
+          agentResult = await executeWithGemini(text);
+        } else {
+          agentResult = parseAndExecuteLocalIntent(text);
+        }
+      } catch (err) {
+        agentResult = {
+          content: `⚠️ Error executing task: ${err.message}`,
+          actions: []
+        };
+      }
+
+      isAiThinking = false;
+      aiChatHistory.push({
+        role: 'assistant',
+        content: agentResult.content,
+        actions: agentResult.actions || []
+      });
+
+      saveAIChatHistory();
+      renderAIChat();
+    }
+
+    function quickActionTask(promptText) {
+      const tabInput = document.getElementById('tabChatInput');
+      const drawerInput = document.getElementById('drawerChatInput');
+      if (tabInput) tabInput.value = promptText;
+      if (drawerInput) drawerInput.value = promptText;
+
+      handleAIChatSubmit(null, 'tab');
+    }
+
+    function saveAIChatHistory() {
+      // Keep last 30 messages
+      if (aiChatHistory.length > 30) aiChatHistory = aiChatHistory.slice(-30);
+      localStorage.setItem('sde2_ai_chat_history', JSON.stringify(aiChatHistory));
+    }
+
+    function clearAIChat() {
+      if (confirm('Clear AI Copilot chat history?')) {
+        aiChatHistory = DEFAULT_AI_WELCOME;
+        saveAIChatHistory();
+        renderAIChat();
+      }
+    }
+
+    // SIMPLE MARKDOWN FORMATTER
+    function formatMarkdown(str) {
+      if (!str) return '';
+      let escaped = str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+      // Code blocks
+      escaped = escaped.replace(/```([a-z]*)\n([\s\S]*?)```/gi, (match, lang, code) => {
+        return `<pre class="bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-[11px] overflow-x-auto my-1.5 font-mono text-cyan-300"><code>${code.trim()}</code></pre>`;
+      });
+
+      // Inline code
+      escaped = escaped.replace(/`([^`]+)`/g, '<code class="bg-slate-900 border border-slate-800 px-1 py-0.5 rounded text-cyan-300 font-mono text-[10px]">$1</code>');
+
+      // Bold
+      escaped = escaped.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-bold text-white">$1</strong>');
+
+      // Italic
+      escaped = escaped.replace(/\*([^*]+)\*/g, '<em class="text-slate-300">$1</em>');
+
+      // Bullet lists
+      escaped = escaped.replace(/^\s*[\*\-]\s+(.*)$/gim, '<div class="flex items-start space-x-1.5 ml-1 my-0.5"><span class="text-cyan-400 font-bold">&bull;</span><span>$1</span></div>');
+
+      // Line breaks
+      escaped = escaped.replace(/\n\n/g, '<div class="h-2"></div>');
+      escaped = escaped.replace(/\n/g, '<br>');
+
+      return escaped;
+    }
+
+    // RENDER CHAT FEED
+    function renderAIChat() {
+      const feeds = [document.getElementById('tabChatFeed'), document.getElementById('drawerChatFeed')];
+      
+      const html = aiChatHistory.map((msg, i) => {
+        const isUser = msg.role === 'user';
+        const actionsHtml = (msg.actions && msg.actions.length > 0) ? msg.actions.map(act => `
+          <div class="my-1.5 p-2 rounded-xl bg-cyan-950/60 border border-cyan-800/60 text-[11px] text-cyan-300 flex items-center space-x-2">
+            <span class="text-sm">⚡</span>
+            <div>
+              <span class="font-bold text-white text-[10px] uppercase tracking-wider block">Action Executed</span>
+              <span class="text-[11px]">${act.detail}</span>
+            </div>
+          </div>
+        `).join('') : '';
+
+        if (isUser) {
+          return `
+            <div class="flex justify-end">
+              <div class="max-w-[85%] bg-gradient-to-r from-cyan-600 to-indigo-600 text-white rounded-2xl rounded-tr-none px-3.5 py-2.5 text-xs shadow-md space-y-1">
+                <p class="leading-relaxed whitespace-pre-wrap">${msg.content}</p>
+              </div>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="flex justify-start space-x-2">
+              <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center shrink-0 text-xs shadow-md shadow-cyan-500/20 mt-0.5">
+                🤖
+              </div>
+              <div class="max-w-[88%] bg-slate-900 border border-slate-800/90 text-slate-300 rounded-2xl rounded-tl-none px-3.5 py-2.5 text-xs shadow-md space-y-1.5">
+                ${actionsHtml}
+                <div class="leading-relaxed text-[11px] text-slate-300">${formatMarkdown(msg.content)}</div>
+              </div>
+            </div>
+          `;
+        }
+      }).join('');
+
+      const thinkingHtml = isAiThinking ? `
+        <div class="flex justify-start space-x-2">
+          <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center shrink-0 text-xs animate-pulse">
+            🤖
+          </div>
+          <div class="bg-slate-900 border border-slate-800 text-slate-400 rounded-2xl rounded-tl-none px-3.5 py-2 text-xs flex items-center space-x-2">
+            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+            <span class="text-[11px] text-cyan-300">Agent reasoning & executing roadmap actions...</span>
+          </div>
+        </div>
+      ` : '';
+
+      feeds.forEach(feed => {
+        if (feed) {
+          feed.innerHTML = html + thinkingHtml;
+          feed.scrollTop = feed.scrollHeight;
+        }
+      });
+    }
+
+    // DRAWER TOGGLE
+    function toggleAIChatDrawer(forceState) {
+      const drawer = document.getElementById('aiDrawer');
+      const backdrop = document.getElementById('aiDrawerBackdrop');
+      if (!drawer || !backdrop) return;
+
+      const isClosed = drawer.classList.contains('translate-x-full');
+      const shouldOpen = forceState !== undefined ? forceState : isClosed;
+
+      if (shouldOpen) {
+        drawer.classList.remove('translate-x-full');
+        drawer.classList.add('translate-x-0');
+        backdrop.classList.remove('hidden');
+        renderAIChat();
+        setTimeout(() => document.getElementById('drawerChatInput')?.focus(), 150);
+      } else {
+        drawer.classList.add('translate-x-full');
+        drawer.classList.remove('translate-x-0');
+        backdrop.classList.add('hidden');
+      }
+    }
+
+    // SETTINGS HELPERS FOR GEMINI API
+    function updateAIBadges() {
+      const isConnected = !!geminiApiKey;
+      const statusText = isConnected ? `⚡ Gemini (${geminiModel.replace('gemini-', '')})` : 'Offline / Local Engine';
+      const badgeClass = isConnected ? 'px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-950 text-emerald-300 border border-emerald-800' : 'px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-400 border border-slate-700';
+
+      const sBadge = document.getElementById('geminiStatusBadge');
+      if (sBadge) {
+        sBadge.innerText = statusText;
+        sBadge.className = badgeClass;
+      }
+
+      const tBadge = document.getElementById('tabAiModeBadge');
+      if (tBadge) {
+        tBadge.innerText = isConnected ? `⚡ Gemini Connected` : 'Local Engine Ready';
+        tBadge.className = isConnected ? 'px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-950 text-emerald-300 border border-emerald-800' : 'px-2 py-0.5 rounded text-[10px] font-semibold bg-cyan-950 text-cyan-300 border border-cyan-800/80';
+      }
+
+      const dBadge = document.getElementById('drawerAiModeBadge');
+      if (dBadge) {
+        dBadge.innerText = isConnected ? `Gemini Active (${geminiModel})` : 'Local Engine Ready';
+        dBadge.className = isConnected ? 'text-[10px] text-emerald-400 font-medium' : 'text-[10px] text-cyan-400 font-medium';
+      }
+    }
+
+    function saveGeminiApiKeyFromInput() {
+      const input = document.getElementById('geminiApiKeyInput');
+      const val = (input?.value || '').trim();
+      geminiApiKey = val;
+      if (val) {
+        localStorage.setItem('sde2_gemini_api_key', val);
+        alert('✅ Gemini API Key saved locally!');
+      } else {
+        localStorage.removeItem('sde2_gemini_api_key');
+        alert('Gemini API Key cleared. Local Engine active.');
+      }
+      updateAIBadges();
+    }
+
+    function saveGeminiModelFromSelect() {
+      const sel = document.getElementById('geminiModelSelect');
+      if (sel) {
+        geminiModel = sel.value;
+        localStorage.setItem('sde2_gemini_model', geminiModel);
+        updateAIBadges();
+      }
+    }
+
+    async function testGeminiConnection() {
+      if (!geminiApiKey) {
+        alert('Please enter a Gemini API Key first.');
+        return;
+      }
+      const btn = event?.target;
+      if (btn) btn.innerText = 'Testing...';
+      try {
+        const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiApiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: 'Ping' }] }],
+            generationConfig: { maxOutputTokens: 5 }
+          })
+        });
+        if (resp.ok) {
+          alert('🎉 Gemini API connection successful! Autonomous tool calling is active.');
+          updateAIBadges();
+        } else {
+          const err = await resp.json().catch(() => ({}));
+          alert(`❌ Connection failed (${resp.status}): ${err?.error?.message || 'Invalid API Key'}`);
+        }
+      } catch (err) {
+        alert('❌ Network connection error: ' + err.message);
+      } finally {
+        if (btn) btn.innerText = 'Test Connection ⚡';
+      }
+    }
+
+    function initAIAgent() {
+      if (document.getElementById('geminiApiKeyInput') && geminiApiKey) {
+        document.getElementById('geminiApiKeyInput').value = geminiApiKey;
+      }
+      if (document.getElementById('geminiModelSelect') && geminiModel) {
+        document.getElementById('geminiModelSelect').value = geminiModel;
+      }
+      updateAIBadges();
+      renderAIChat();
+    }
+
     // INITIAL LOAD
     document.addEventListener('DOMContentLoaded', () => {
       const d = new Date();
@@ -1025,7 +2158,10 @@
       updateProgressStats();
       updateDailyCard();
       renderDSAList();
-      renderSDList();\n      loadAlertPreferences();\n      updateNotifBadge();
+      renderSDList();
+      loadAlertPreferences();
+      updateNotifBadge();
+      initAIAgent();
     });
   </script>
 </body>
