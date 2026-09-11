@@ -278,38 +278,63 @@
 
     <!-- ================= TAB 4: SETTINGS / BACKUP ================= -->
     <section id="tabSettings" class="space-y-4 tab-content hidden">
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
-        <h2 class="text-base font-bold text-white">App & Schedule Settings</h2>
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-lg">
+        <div class="flex items-center justify-between">
+          <h2 class="text-base font-bold text-white">Schedule Alerts & Alarms</h2>
+          <span id="notifStatusBadge" class="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-950 text-amber-300 border border-amber-800/60">Tap to Enable</span>
+        </div>
         
-        <div class="space-y-2 text-xs text-slate-300">
-          <div class="flex justify-between items-center py-2 border-b border-slate-800">
+        <p class="text-xs text-slate-400">Configure your daily notification triggers for your iPhone. On iOS, add this app to your Home Screen to receive native lock-screen alerts.</p>
+
+        <div class="space-y-2.5 text-xs text-slate-300 pt-1">
+          <!-- Alert 1: 8:45 AM -->
+          <div class="flex justify-between items-center p-3 rounded-xl bg-slate-950/70 border border-slate-800">
             <div>
-              <p class="font-semibold text-white">Daily Problem Schedule</p>
-              <p class="text-[11px] text-slate-400">Monday–Friday at 8:45 AM</p>
+              <p class="font-semibold text-white flex items-center"><span class="mr-1.5">🎯</span> Morning DSA Problem Dispatch</p>
+              <p class="text-[11px] text-slate-400">Monday–Friday at 8:45 AM (Pre-9:00 AM session)</p>
             </div>
-            <span class="text-emerald-400 font-semibold">Active</span>
+            <input type="checkbox" id="toggleAlertMorning" checked onchange="saveAlertPreferences()" class="w-4 h-4 accent-cyan-500 rounded cursor-pointer">
           </div>
 
-          <div class="flex justify-between items-center py-2 border-b border-slate-800">
+          <!-- Alert 2: 10:00 AM Weekends -->
+          <div class="flex justify-between items-center p-3 rounded-xl bg-slate-950/70 border border-slate-800">
             <div>
-              <p class="font-semibold text-white">Daily Check-in Schedule</p>
-              <p class="text-[11px] text-slate-400">Every Evening at 9:30 PM</p>
+              <p class="font-semibold text-white flex items-center"><span class="mr-1.5">🏗️</span> Weekend Architecture Deep Dive</p>
+              <p class="text-[11px] text-slate-400">Saturday & Sunday at 10:00 AM (90 mins)</p>
             </div>
-            <span class="text-emerald-400 font-semibold">Active</span>
+            <input type="checkbox" id="toggleAlertWeekend" checked onchange="saveAlertPreferences()" class="w-4 h-4 accent-purple-500 rounded cursor-pointer">
           </div>
 
-          <div class="flex justify-between items-center py-2 border-b border-slate-800">
+          <!-- Alert 3: 9:30 PM -->
+          <div class="flex justify-between items-center p-3 rounded-xl bg-slate-950/70 border border-slate-800">
             <div>
-              <p class="font-semibold text-white">Weekend Design Deep Dive</p>
-              <p class="text-[11px] text-slate-400">Saturday & Sunday at 10:00 AM</p>
+              <p class="font-semibold text-white flex items-center"><span class="mr-1.5">🔥</span> Evening Check-in & Streak Logger</p>
+              <p class="text-[11px] text-slate-400">Every Night at 9:30 PM (Post-work review)</p>
             </div>
-            <span class="text-emerald-400 font-semibold">Active</span>
+            <input type="checkbox" id="toggleAlertEvening" checked onchange="saveAlertPreferences()" class="w-4 h-4 accent-emerald-500 rounded cursor-pointer">
           </div>
         </div>
 
-        <div class="pt-2">
-          <button onclick="testNotification()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-semibold text-cyan-300 transition">
-            🔔 Test Web Notification
+        <div class="grid grid-cols-2 gap-2.5 pt-2">
+          <button onclick="requestNotificationPermission()" class="py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-cyan-600/20 transition flex items-center justify-center">
+            <span class="mr-1.5">🔔</span> Enable Push Alerts
+          </button>
+          <button onclick="testNotification()" class="py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-semibold text-cyan-300 transition flex items-center justify-center">
+            ⚡ Test Lock Screen
+          </button>
+        </div>
+
+        <!-- 1-CLICK IPHONE CALENDAR SYNC -->
+        <div class="mt-3 p-3.5 bg-gradient-to-r from-indigo-950/60 to-slate-900 border border-indigo-800/50 rounded-xl space-y-2">
+          <div class="flex items-center space-x-2">
+            <span class="text-base">📅</span>
+            <h4 class="text-xs font-bold text-indigo-300">1-Click iPhone Calendar Alarms (.ics)</h4>
+          </div>
+          <p class="text-[11px] text-slate-400 leading-relaxed">
+            Download our calendar sync file to add all 3 recurring schedules directly to your iPhone Calendar with native sound and lock-screen alarms.
+          </p>
+          <button onclick="downloadCalendarICS()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition flex items-center justify-center shadow-md">
+            📲 Sync All Alarms to iPhone Calendar
           </button>
         </div>
       </div>
@@ -497,7 +522,7 @@
       }
       if (tabId === 'tabSD') {
         document.getElementById('navBtnSD').classList.add('text-cyan-400');
-        renderSDList();
+        renderSDList();\n      loadAlertPreferences();\n      updateNotifBadge();
       }
       if (tabId === 'tabSettings') document.getElementById('navBtnSettings').classList.add('text-cyan-400');
       
@@ -647,7 +672,7 @@
       if (item) {
         item.status = newStatus;
         saveState();
-        renderSDList();
+        renderSDList();\n      loadAlertPreferences();\n      updateNotifBadge();
         updateDailyCard();
       }
     }
@@ -708,7 +733,7 @@
           btn.className = 'sd-filter px-3 py-1 rounded-full font-medium bg-slate-800 text-slate-300 border border-slate-700';
         }
       });
-      renderSDList();
+      renderSDList();\n      loadAlertPreferences();\n      updateNotifBadge();
     }
 
     // PROGRESS STATS
@@ -767,7 +792,7 @@
       } else {
         newItem.track = pattern;
         sdTopics.push(newItem);
-        renderSDList();
+        renderSDList();\n      loadAlertPreferences();\n      updateNotifBadge();
       }
 
       saveState();
@@ -781,7 +806,7 @@
         renderDSAList();
       } else {
         sdTopics = sdTopics.filter(t => t.id !== id);
-        renderSDList();
+        renderSDList();\n      loadAlertPreferences();\n      updateNotifBadge();
       }
       saveState();
     }
@@ -814,7 +839,7 @@
             sdTopics = imported.sd;
             saveState();
             renderDSAList();
-            renderSDList();
+            renderSDList();\n      loadAlertPreferences();\n      updateNotifBadge();
             updateDailyCard();
             alert('Progress restored successfully!');
           } else {
@@ -833,35 +858,163 @@
         sdTopics = DEFAULT_SD;
         saveState();
         renderDSAList();
-        renderSDList();
+        renderSDList();\n      loadAlertPreferences();\n      updateNotifBadge();
         updateDailyCard();
       }
     }
 
-    // NOTIFICATIONS
+    // NOTIFICATIONS & SCHEDULE ALARM ENGINE
+    function updateNotifBadge() {
+      const badge = document.getElementById('notifStatusBadge');
+      if (!badge) return;
+      if (!('Notification' in window)) {
+        badge.innerText = 'Add to Home Screen';
+        badge.className = 'px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-400';
+        return;
+      }
+      if (Notification.permission === 'granted') {
+        badge.innerText = 'Alerts Active ✓';
+        badge.className = 'px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-950 text-emerald-300 border border-emerald-800';
+      } else if (Notification.permission === 'denied') {
+        badge.innerText = 'Blocked in iOS Settings';
+        badge.className = 'px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-950 text-rose-300 border border-rose-800';
+      } else {
+        badge.innerText = 'Tap to Enable';
+        badge.className = 'px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-950 text-amber-300 border border-amber-800/60';
+      }
+    }
+
+    function saveAlertPreferences() {
+      const prefs = {
+        morning: document.getElementById('toggleAlertMorning')?.checked ?? true,
+        weekend: document.getElementById('toggleAlertWeekend')?.checked ?? true,
+        evening: document.getElementById('toggleAlertEvening')?.checked ?? true
+      };
+      localStorage.setItem('sde2_alert_prefs', JSON.stringify(prefs));
+    }
+
+    function loadAlertPreferences() {
+      const saved = localStorage.getItem('sde2_alert_prefs');
+      if (saved) {
+        try {
+          const p = JSON.parse(saved);
+          if (document.getElementById('toggleAlertMorning')) document.getElementById('toggleAlertMorning').checked = p.morning;
+          if (document.getElementById('toggleAlertWeekend')) document.getElementById('toggleAlertWeekend').checked = p.weekend;
+          if (document.getElementById('toggleAlertEvening')) document.getElementById('toggleAlertEvening').checked = p.evening;
+        } catch (e) {}
+      }
+    }
+
     function requestNotificationPermission() {
       if (!('Notification' in window)) {
-        alert('Web Notifications are not supported in this browser environment. On iOS, add this app to your Home Screen to enable push.');
+        alert('Web Push requires adding this app to your iPhone Home Screen first (Share > Add to Home Screen in Safari).');
         return;
       }
       Notification.requestPermission().then(permission => {
+        updateNotifBadge();
         if (permission === 'granted') {
-          alert('Notification permission granted! You will receive daily alerts.');
+          triggerNativeAlert('🎯 SDE-2 Alerts Enabled', 'Your 8:45 AM, 10:00 AM, and 9:30 PM schedules are now active.');
         } else {
-          alert('Notification permission was ' + permission);
+          alert('Notification permission is ' + permission + '. You can re-enable in iPhone Settings > Safari > Notifications.');
         }
       });
     }
 
-    function testNotification() {
-      if (Notification.permission === 'granted') {
-        new Notification('🎯 SDE-2 Daily Dispatch', {
-          body: 'Today: LC 974 (Subarrays Divisible by K) — 9:00 AM session ready.',
-          icon: 'icons/icon-192.png'
-        });
-      } else {
-        requestNotificationPermission();
+    function triggerNativeAlert(title, body) {
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: 'SHOW_NOTIF', title, body });
       }
+      if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+          new Notification(title, {
+            body: body,
+            icon: 'icons/icon-192.png',
+            badge: 'icons/icon-192.png'
+          });
+        } catch (err) {
+          navigator.serviceWorker.ready.then(reg => {
+            reg.showNotification(title, { body: body, icon: 'icons/icon-192.png' });
+          });
+        }
+      }
+    }
+
+    function testNotification() {
+      if (!('Notification' in window) || Notification.permission !== 'granted') {
+        requestNotificationPermission();
+        return;
+      }
+      triggerNativeAlert('🎯 SDE-2 Daily Dispatch (8:45 AM)', 'Today: LC 974 (Subarray Sums Divisible by K). 9:00 AM focus session ready.');
+    }
+
+    // GENERATE AND DOWNLOAD .ICS CALENDAR FOR IPHONE
+    function downloadCalendarICS() {
+      const icsData = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//Harshan Sarvaiya//SDE2 Prep Tracker//EN',
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH',
+        
+        // Event 1: Weekdays 9:00 AM - 10:00 AM (DSA Problem Dispatch)
+        'BEGIN:VEVENT',
+        'SUMMARY:🎯 SDE-2 DSA Focus Block (LeetCode Medium)',
+        'DESCRIPTION:60 mins focused problem solving. 1 LeetCode Medium + Edge-case review.',
+        'RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR',
+        'DTSTART:20260914T090000',
+        'DTEND:20260914T100000',
+        'BEGIN:VALARM',
+        'TRIGGER:-PT15M',
+        'ACTION:DISPLAY',
+        'DESCRIPTION:Reminder: Daily Problem Dispatch ready (8:45 AM)',
+        'END:VALARM',
+        'BEGIN:VALARM',
+        'TRIGGER:-PT0M',
+        'ACTION:DISPLAY',
+        'DESCRIPTION:Start DSA Focus Session (9:00 AM)',
+        'END:VALARM',
+        'END:VEVENT',
+
+        // Event 2: Weekends 10:00 AM - 11:30 AM (System Design Deep Dive)
+        'BEGIN:VEVENT',
+        'SUMMARY:🏗️ SDE-2 System Design Deep Dive (HLD & LLD)',
+        'DESCRIPTION:90 mins machine coding & distributed architecture review.',
+        'RRULE:FREQ=WEEKLY;BYDAY=SA,SU',
+        'DTSTART:20260912T100000',
+        'DTEND:20260912T113000',
+        'BEGIN:VALARM',
+        'TRIGGER:-PT0M',
+        'ACTION:DISPLAY',
+        'DESCRIPTION:Start Weekend System Design Session (10:00 AM)',
+        'END:VALARM',
+        'END:VEVENT',
+
+        // Event 3: Daily 9:30 PM - 9:45 PM (Daily Check-in & Streak Logger)
+        'BEGIN:VEVENT',
+        'SUMMARY:🔥 SDE-2 Daily Prep Check-in & Streak Log',
+        'DESCRIPTION:Review daily progress, log solved problems, and clear blockers.',
+        'RRULE:FREQ=DAILY',
+        'DTSTART:20260911T213000',
+        'DTEND:20260911T214500',
+        'BEGIN:VALARM',
+        'TRIGGER:-PT0M',
+        'ACTION:DISPLAY',
+        'DESCRIPTION:Time for Daily Check-in & Streak Log (9:30 PM)',
+        'END:VALARM',
+        'END:VEVENT',
+
+        'END:VCALENDAR'
+      ].join('\r\n');
+
+      const blob = new Blob([icsData], { type: 'text/calendar;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'SDE2_Prep_Schedule.ics';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
 
     // INITIAL LOAD
@@ -872,7 +1025,7 @@
       updateProgressStats();
       updateDailyCard();
       renderDSAList();
-      renderSDList();
+      renderSDList();\n      loadAlertPreferences();\n      updateNotifBadge();
     });
   </script>
 </body>
