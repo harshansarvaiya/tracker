@@ -8,7 +8,7 @@ via GitHub (harshansarvaiya/tracker) with zero-knowledge AES-256 GCM encryption.
 End-to-End Encrypted:
 All roadmap details, LeetCode notes, chat history, and foundational memories
 are encrypted before being committed to GitHub. Public repository files are
-completely unreadable ciphertext without your secret passphrase.
+completely unreadable ciphertext without your 6-digit passcode.
 
 Usage in your "Switch" Notebook:
 --------------------------------
@@ -16,8 +16,8 @@ Usage in your "Switch" Notebook:
 !curl -s -O https://raw.githubusercontent.com/harshansarvaiya/tracker/main/tracker_sync.py
 from tracker_sync import Tracker
 
-# 2. Connect with your GitHub PAT & secret passphrase (defaults to your set passphrase)
-t = Tracker(token="ghp_yourTokenHere", passphrase="SARshanAPPsecurity@$2144")
+# 2. Connect with your GitHub PAT & 6-digit passcode
+t = Tracker(token="ghp_yourTokenHere", passcode="your_passcode")
 
 # 3. Mark problems done, add topics, inspect status (all encrypted on-the-fly)
 t.done("974")                          # Marks LC 974 as DONE & syncs encrypted to iPhone
@@ -38,29 +38,30 @@ import urllib.parse
 
 
 class Tracker:
-    def __init__(self, token=None, repo="harshansarvaiya/tracker", branch="main", file_path="data.json", passphrase="SARshanAPPsecurity@$2144"):
+    def __init__(self, token=None, repo="harshansarvaiya/tracker", branch="main", file_path="data.json", passcode=None, passphrase=None):
         """
         Initializes the Tracker sync client.
         :param token: GitHub Personal Access Token (classic with repo scope, or fine-grained with contents:read/write)
         :param repo: GitHub repository path ('owner/repo')
         :param branch: Branch name (default 'main')
         :param file_path: Relative path to data.json in repo (default 'data.json')
-        :param passphrase: Zero-knowledge encryption passphrase for AES-256 GCM
+        :param passcode: 6-digit encryption passcode for AES-256 GCM
+        :param passphrase: Alias for passcode
         """
         self.repo = repo.strip()
         self.branch = branch.strip()
         self.file_path = file_path.strip()
 
-        # Passphrase resolution: direct arg -> Colab secrets -> environment variable
-        self.passphrase = passphrase
+        # Passcode resolution: direct arg -> Colab secrets -> environment variable
+        self.passphrase = str(passcode or passphrase or "").strip()
         if not self.passphrase:
             try:
                 from google.colab import userdata
-                self.passphrase = userdata.get("SYNC_PASSPHRASE")
+                self.passphrase = str(userdata.get("TRACKER_PASSCODE") or userdata.get("SYNC_PASSPHRASE") or "").strip()
             except Exception:
                 pass
         if not self.passphrase:
-            self.passphrase = os.environ.get("SYNC_PASSPHRASE", "SARshanAPPsecurity@$2144")
+            self.passphrase = os.environ.get("TRACKER_PASSCODE", os.environ.get("SYNC_PASSPHRASE", ""))
 
         # Token resolution: direct arg -> Colab secrets -> environment variable
         self.token = token
@@ -133,8 +134,8 @@ class Tracker:
             return envelope
         if not self.passphrase:
             raise ValueError(
-                "Data is encrypted with AES-256 GCM. Please provide your passphrase:\n"
-                "  t = Tracker(token='...', passphrase='SARshanAPPsecurity@$2144')"
+                "Data is encrypted with AES-256 GCM. Please provide your 6-digit passcode:\n"
+                "  t = Tracker(token='...', passcode='your_passcode')"
             )
         try:
             from cryptography.hazmat.primitives.ciphers.aead import AESGCM
