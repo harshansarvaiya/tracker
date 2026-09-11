@@ -2633,9 +2633,50 @@ Provide concise, senior engineer answers focusing on zero-allocation optimizatio
       updateSyncUIStatus();
       initAIAgent();
 
+      // Process 1-tap deep links from Gemini Notebook or external shortcuts
+      handleUrlDeepLink();
+
       // Automatically pull latest notebook updates from GitHub on load
       syncFromRemote(false);
     });
+
+    function handleUrlDeepLink() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const cmd = urlParams.get('cmd') || urlParams.get('command') || urlParams.get('q');
+      const action = urlParams.get('action');
+      const id = urlParams.get('id');
+
+      if (cmd) {
+        try {
+          const decoded = decodeURIComponent(cmd);
+          const res = parseAndExecuteLocalIntent(decoded);
+          const act = (res && res.actions && res.actions.length > 0) ? res.actions[0] : `Executed: ${decoded}`;
+          showSyncToast(act, '⚡');
+        } catch (e) {
+          console.error('Deep link command error:', e);
+        }
+        window.history.replaceState({}, '', window.location.pathname);
+        return;
+      }
+
+      if (action && id) {
+        const actLower = action.toLowerCase();
+        if (actLower === 'done' || actLower === 'mark_done') {
+          updateDsaStatus(id, 'DONE');
+          updateDailyCard();
+          showSyncToast(`Marked LC ${id} as DONE ✓`, '⚡');
+        } else if (actLower === 'in_progress' || actLower === 'inprogress') {
+          updateDsaStatus(id, 'IN_PROGRESS');
+          updateDailyCard();
+          showSyncToast(`Marked LC ${id} as IN PROGRESS ▶`, '⚡');
+        } else if (actLower === 'todo') {
+          updateDsaStatus(id, 'TODO');
+          updateDailyCard();
+          showSyncToast(`Marked LC ${id} as TODO ○`, '⚡');
+        }
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    }
 
     // Auto-sync when returning to app on iPhone (app switcher, Safari tab focus, unlock)
     document.addEventListener('visibilitychange', () => {
